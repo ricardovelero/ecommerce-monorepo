@@ -1,0 +1,37 @@
+{
+  "brand": "SangreAI Shop",
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "cart": "Cart",
+    "account": "Account",
+    "admin": "Admin"
+  },
+  "home": {
+    "title": "E-commerce starter",
+    "subtitle": "Modular architecture with decoupled frontend and backend."
+  },
+  "products": {
+    "title": "Products",
+    "view": "View details",
+    "add": "Add to cart"
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty"
+  },
+  "account": {
+    "title": "Account",
+    "signin": "Sign in",
+    "signout": "Sign out"
+  },
+  "admin": {
+    "title": "Admin dashboard",
+    "placeholder": "Will be implemented in Phase 2"
+  },
+  "language": "Language",
+  "toast": {
+    "added": "Product added",
+    "removed": "Product removed"
+  }
+}
