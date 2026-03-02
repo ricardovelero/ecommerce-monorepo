@@ -8,19 +8,18 @@ function emptyCart(): CartDTO {
 }
 
 export async function getCartController(req: Request, res: Response): Promise<void> {
-  if (!req.auth?.userId) {
-    // TODO: remove dev fallback once token validation and user sync are implemented.
+  if (!req.user) {
     res.json(emptyCart());
     return;
   }
 
-  const cart = await getCart(req.auth.userId);
+  const cart = await getCart(req.user.id);
   res.json(cart);
 }
 
 export async function addCartItemController(req: Request, res: Response): Promise<void> {
   const cart = await addCartItem({
-    userId: req.auth!.userId,
+    userId: req.user!.id,
     productId: req.body.productId,
     quantity: req.body.quantity,
   });
@@ -29,7 +28,7 @@ export async function addCartItemController(req: Request, res: Response): Promis
 
 export async function removeCartItemController(req: Request, res: Response): Promise<void> {
   const cart = await removeCartItem({
-    userId: req.auth!.userId,
+    userId: req.user!.id,
     itemId: req.params.id,
   });
   res.json(cart);

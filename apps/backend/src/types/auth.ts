@@ -1,4 +1,12 @@
+import type { Role } from "@prisma/client";
+
 export interface AuthContext {
-  userId: string;
-  token: string;
+  externalId: string;
+  email?: string;
+}
+
+export interface RequestUser {
+  id: string;
+  email: string;
+  role: Role;
 }

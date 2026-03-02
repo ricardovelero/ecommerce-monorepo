@@ -1,8 +1,17 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (adminEmail) {
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { role: Role.ADMIN },
+      create: { email: adminEmail, role: Role.ADMIN },
+    });
+  }
+
   const categorySkincare = await prisma.category.upsert({
     where: { name: "Skincare" },
     update: {},

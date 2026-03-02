@@ -7,6 +7,8 @@ import morgan from "morgan";
 import { env } from "@/config/env";
 import { errorHandler } from "@/middleware/errorHandler";
 import { requestId } from "@/middleware/requestId";
+import { adminRoutes } from "@/routes/adminRoutes";
+import { authRoutes } from "@/routes/authRoutes";
 import { cartRoutes } from "@/routes/cartRoutes";
 import { healthRoutes } from "@/routes/healthRoutes";
 import { productRoutes } from "@/routes/productRoutes";
@@ -21,6 +23,8 @@ app.use(requestId);
 app.use(healthRoutes);
 app.use("/api", productRoutes);
 app.use("/api", cartRoutes);
+app.use("/api", authRoutes);
+app.use("/api", adminRoutes);
 
 const frontendDistPath = path.resolve(__dirname, env.FRONTEND_DIST_PATH);
 
