@@ -5,11 +5,36 @@ const prisma = new PrismaClient();
 async function main() {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (adminEmail) {
-    await prisma.user.upsert({
+    const existingByEmail = await prisma.user.findFirst({
       where: { email: adminEmail },
-      update: { role: Role.ADMIN },
-      create: { email: adminEmail, role: Role.ADMIN },
+      orderBy: { createdAt: "asc" },
     });
+
+    if (existingByEmail) {
+      await prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: { role: Role.ADMIN },
+      });
+    } else {
+      const seedAdmin = await prisma.user.findUnique({
+        where: { externalId: "seed-admin" },
+      });
+
+      if (seedAdmin) {
+        await prisma.user.update({
+          where: { id: seedAdmin.id },
+          data: { email: adminEmail, role: Role.ADMIN },
+        });
+      } else {
+        await prisma.user.create({
+          data: {
+            externalId: "seed-admin",
+            email: adminEmail,
+            role: Role.ADMIN,
+          },
+        });
+      }
+    }
   }
 
   const categorySkincare = await prisma.category.upsert({

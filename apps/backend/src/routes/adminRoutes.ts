@@ -8,6 +8,10 @@ import {
   putAdminCategory,
 } from "@/controllers/adminCategoryController";
 import {
+  getAdminOrderByIdController,
+  getAdminOrdersController,
+} from "@/controllers/adminOrderController";
+import {
   deleteAdminProductController,
   getAdminProducts,
   postAdminProduct,
@@ -50,3 +54,6 @@ adminRoutes.put(
   asyncHandler(putAdminCategory),
 );
 adminRoutes.delete("/admin/categories/:id", asyncHandler(deleteAdminCategoryController));
+
+adminRoutes.get("/admin/orders", asyncHandler(getAdminOrdersController));
+adminRoutes.get("/admin/orders/:id", asyncHandler(getAdminOrderByIdController));

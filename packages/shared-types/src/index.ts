@@ -29,3 +29,39 @@ export interface CartDTO {
   status: "OPEN" | "CHECKED_OUT";
   items: CartItemDTO[];
 }
+
+export type OrderStatus =
+  | "PENDING"
+  | "PAYMENT_PROCESSING"
+  | "PAID"
+  | "FAILED"
+  | "CANCELLED"
+  | "REFUNDED";
+
+export interface OrderItemDTO {
+  id: string;
+  productId: string;
+  nameSnapshot: string;
+  priceCentsSnapshot: number;
+  quantity: number;
+}
+
+export interface OrderDTO {
+  id: string;
+  userId: string;
+  status: OrderStatus;
+  currency: string;
+  subtotalCents: number;
+  totalCents: number;
+  stripeCheckoutSessionId?: string | null;
+  stripePaymentIntentId?: string | null;
+  stripeCustomerId?: string | null;
+  paidAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: OrderItemDTO[];
+}
+
+export interface CheckoutSessionResponseDTO {
+  url: string;
+}

@@ -5,6 +5,7 @@ import { env } from "@/config/env";
 import { HttpError } from "@/utils/httpError";
 
 let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function getBearerToken(req: Request): string {
   const header = req.headers.authorization;
@@ -32,21 +33,51 @@ function getJwks() {
   return jwks;
 }
 
+function isEmailLike(value: unknown): value is string {
+  return typeof value === "string" && EMAIL_REGEX.test(value.trim());
+}
+
+function extractEmail(payload: Record<string, unknown>): string | undefined {
+  const directKeys = [
+    "email",
+    "email_address",
+    "primary_email_address",
+    "upn",
+    "preferred_username",
+  ];
+
+  for (const key of directKeys) {
+    const value = payload[key];
+    if (isEmailLike(value)) {
+      return value.trim().toLowerCase();
+    }
+  }
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (key.toLowerCase().includes("email") && isEmailLike(value)) {
+      return value.trim().toLowerCase();
+    }
+  }
+
+  return undefined;
+}
+
 export function verifyJwt(req: Request, _res: Response, next: NextFunction): void {
   const token = getBearerToken(req);
 
   jwtVerify(token, getJwks(), {
     issuer: env.CLERK_ISSUER,
+    audience: env.CLERK_AUDIENCE,
   })
     .then(({ payload }) => {
-      const externalId = payload.sub;
-      if (typeof externalId !== "string" || !externalId) {
+      const externalId = typeof payload.sub === "string" ? payload.sub.trim() : "";
+      if (!externalId) {
         throw new HttpError(401, "Invalid token subject");
       }
 
       req.auth = {
         externalId,
-        email: typeof payload.email === "string" ? payload.email : undefined,
+        email: extractEmail(payload),
       };
 
       next();

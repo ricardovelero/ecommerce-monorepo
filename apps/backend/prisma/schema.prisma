@@ -17,17 +17,29 @@ enum Role {
   ADMIN
 }
 
+enum OrderStatus {
+  PENDING
+  PAYMENT_PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
 model User {
   id                String     @id @default(cuid())
-  email             String     @unique
-  externalId        String?    @unique
+  externalId        String     @unique
+  email             String?
   role              Role       @default(USER)
   createdAt         DateTime   @default(now())
   carts             Cart[]
+  orders            Order[]    @relation("OrderUser")
   createdProducts   Product[]  @relation("ProductCreatedBy")
   updatedProducts   Product[]  @relation("ProductUpdatedBy")
   createdCategories Category[] @relation("CategoryCreatedBy")
   updatedCategories Category[] @relation("CategoryUpdatedBy")
+  createdOrders     Order[]    @relation("OrderCreatedBy")
+  updatedOrders     Order[]    @relation("OrderUpdatedBy")
 }
 
 model Category {
@@ -58,6 +70,7 @@ model Product {
   createdBy   User?    @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy   User?    @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   cartItems   CartItem[]
+  orderItems  OrderItem[]
 }
 
 model Cart {
@@ -80,4 +93,44 @@ model CartItem {
   quantity  Int
 
   @@unique([cartId, productId])
+}
+
+model Order {
+  id                      String      @id @default(cuid())
+  userId                  String
+  user                    User        @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade)
+  status                  OrderStatus @default(PENDING)
+  currency                String      @default("EUR")
+  subtotalCents           Int
+  totalCents              Int
+  stripeCheckoutSessionId String?     @unique
+  stripePaymentIntentId   String?     @unique
+  stripeCustomerId        String?
+  paidAt                  DateTime?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  createdById             String?
+  updatedById             String?
+  createdBy               User?       @relation("OrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy               User?       @relation("OrderUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  items                   OrderItem[]
+}
+
+model OrderItem {
+  id                 String  @id @default(cuid())
+  orderId            String
+  order              Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  nameSnapshot       String
+  priceCentsSnapshot Int
+  quantity           Int
+}
+
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  provider  String
+  eventId   String   @unique
+  eventType String
+  receivedAt DateTime @default(now())
 }

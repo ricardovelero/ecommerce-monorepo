@@ -10,20 +10,26 @@ import { requestId } from "@/middleware/requestId";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { authRoutes } from "@/routes/authRoutes";
 import { cartRoutes } from "@/routes/cartRoutes";
+import { checkoutRoutes } from "@/routes/checkoutRoutes";
 import { healthRoutes } from "@/routes/healthRoutes";
+import { orderRoutes } from "@/routes/orderRoutes";
 import { productRoutes } from "@/routes/productRoutes";
+import { stripeWebhookRoutes } from "@/routes/stripeWebhookRoutes";
 
 const app: express.Express = express();
 
 app.use(cors());
-app.use(express.json());
 app.use(morgan("dev"));
 app.use(requestId);
+app.use("/api/webhooks/stripe", stripeWebhookRoutes);
+app.use(express.json());
 
 app.use(healthRoutes);
 app.use("/api", productRoutes);
 app.use("/api", cartRoutes);
 app.use("/api", authRoutes);
+app.use("/api", checkoutRoutes);
+app.use("/api", orderRoutes);
 app.use("/api", adminRoutes);
 
 const frontendDistPath = path.resolve(__dirname, env.FRONTEND_DIST_PATH);

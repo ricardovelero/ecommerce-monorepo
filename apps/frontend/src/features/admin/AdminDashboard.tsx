@@ -10,7 +10,7 @@ export function AdminDashboard() {
   return (
     <section>
       <AdminNav />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Products</CardTitle>
@@ -30,6 +30,17 @@ export function AdminDashboard() {
             <p className="mb-3 text-sm text-muted-foreground">Manage available categories for catalog organization.</p>
             <Link className="text-sm font-medium underline" to={`${prefix}/categories`}>
               Open categories admin
+            </Link>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-muted-foreground">Track payment status and Stripe metadata for orders.</p>
+            <Link className="text-sm font-medium underline" to={`${prefix}/orders`}>
+              Open orders admin
             </Link>
           </CardContent>
         </Card>

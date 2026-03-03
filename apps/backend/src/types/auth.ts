@@ -7,6 +7,6 @@ export interface AuthContext {
 
 export interface RequestUser {
   id: string;
-  email: string;
+  email: string | null;
   role: Role;
 }

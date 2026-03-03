@@ -14,6 +14,11 @@ const envSchema = z.object({
   ADMIN_EMAIL: z.string().email().optional(),
   CLERK_JWKS_URL: z.string().url().optional(),
   CLERK_ISSUER: z.string().min(1).optional(),
+  CLERK_AUDIENCE: z.string().min(1).optional(),
+  STRIPE_SECRET_KEY: z.string().min(1).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  APP_URL: z.string().url().default("http://localhost:5173"),
+  API_URL: z.string().url().default("http://localhost:4000"),
 });
 
 export const env = envSchema.parse(process.env);

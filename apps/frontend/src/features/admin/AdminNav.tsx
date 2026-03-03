@@ -17,6 +17,9 @@ export function AdminNav() {
       <Button asChild size="sm" variant="outline">
         <Link to={`${prefix}/categories`}>Categories</Link>
       </Button>
+      <Button asChild size="sm" variant="outline">
+        <Link to={`${prefix}/orders`}>Orders</Link>
+      </Button>
     </div>
   );
 }

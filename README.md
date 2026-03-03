@@ -1,4 +1,4 @@
-# Ecommerce Monorepo (Phase 1)
+# Ecommerce Monorepo (Phase 3)
 
 Production-ready monorepo skeleton for a small e-commerce app using `pnpm` workspaces.
 
@@ -46,10 +46,28 @@ Backend (`apps/backend/.env`):
 - `PORT=4000`
 - `DATABASE_URL=postgresql://ecommerce:ecommerce@localhost:5432/ecommerce?schema=public`
 - `FRONTEND_DIST_PATH=../public`
+- `ADMIN_EMAIL=admin@example.com`
+- `CLERK_JWKS_URL=...`
+- `CLERK_ISSUER=...`
+- `CLERK_AUDIENCE=...` (optional)
+- `STRIPE_SECRET_KEY=sk_test_...`
+- `STRIPE_WEBHOOK_SECRET=whsec_...`
+- `APP_URL=http://localhost:5173`
+- `API_URL=http://localhost:4000`
 
 Frontend (`apps/frontend/.env`):
 - `VITE_API_BASE_URL=http://localhost:4000`
 - `VITE_CLERK_PUBLISHABLE_KEY=pk_test_replace_me`
+
+## Stripe Webhooks (Local)
+
+Use Stripe CLI to forward events to the backend:
+
+```bash
+stripe listen --forward-to localhost:4000/api/webhooks/stripe
+```
+
+Copy the printed webhook secret into `STRIPE_WEBHOOK_SECRET`.
 
 ## Local Development
 
@@ -86,6 +104,12 @@ At root:
   - Uses optional auth and returns a dev empty cart when no auth token is present.
 - `POST /api/cart/items`
 - `DELETE /api/cart/items/:id`
+- `POST /api/checkout/session`
+- `POST /api/webhooks/stripe`
+- `GET /api/orders`
+- `GET /api/orders/:id`
+- `GET /api/admin/orders`
+- `GET /api/admin/orders/:id`
 
 ## Auth Boundary (Frontend)
 
@@ -140,15 +164,18 @@ docker run --rm -p 4000:4000 \
 4. If using Cloud SQL, configure private networking or Cloud SQL connector.
 5. Configure Clerk publishable key in frontend build pipeline if building frontend separately.
 
-## Phase 1 Scope
+## Current Scope
 Included:
 - Monorepo architecture
 - Product and cart API skeleton
+- RBAC + verified auth + admin CRUD
+- Stripe Checkout session + webhook order conversion
+- Orders API (user + admin)
 - Prisma models and seed data
-- Frontend pages: Home, Products, Product Detail, Cart, Account, Admin placeholder
+- Frontend pages: Home, Products, Product Detail, Cart, Account, Admin, Checkout success/cancel, Order history
 - i18n and auth abstraction
 
 Not included:
-- Admin features and RBAC (Phase 2)
-- Payment workflow
-- Order lifecycle
+- Automated tests
+- Rate limiting and advanced observability
+- Refund automation

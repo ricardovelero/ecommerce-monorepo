@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import { RouterProvider } from "react-router-dom";
 
 import { router } from "@/app/router";
+import { AuthSyncProvider } from "@/features/auth/components/AuthSyncProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import "@/i18n";
 
@@ -10,9 +11,11 @@ const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? "pk_te
 export function App() {
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
-      <ToastProvider>
-        <RouterProvider router={router} />
-      </ToastProvider>
+      <AuthSyncProvider>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </AuthSyncProvider>
     </ClerkProvider>
   );
 }

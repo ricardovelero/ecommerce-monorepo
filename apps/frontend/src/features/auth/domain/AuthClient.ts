@@ -7,7 +7,7 @@ export type UserRole = "USER" | "ADMIN";
 
 export interface MeResponse {
   id: string;
-  email: string;
+  email: string | null;
   role: UserRole;
 }
 
