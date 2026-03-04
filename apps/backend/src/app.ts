@@ -2,9 +2,10 @@ import path from "node:path";
 
 import cors from "cors";
 import express from "express";
-import morgan from "morgan";
+import pinoHttp from "pino-http";
 
 import { env } from "@/config/env";
+import { logger } from "@/lib/logger";
 import { errorHandler } from "@/middleware/errorHandler";
 import { requestId } from "@/middleware/requestId";
 import { adminRoutes } from "@/routes/adminRoutes";
@@ -19,8 +20,15 @@ import { stripeWebhookRoutes } from "@/routes/stripeWebhookRoutes";
 const app: express.Express = express();
 
 app.use(cors());
-app.use(morgan("dev"));
 app.use(requestId);
+app.use(
+  pinoHttp({
+    logger,
+    customProps: (req) => ({
+      requestId: req.requestId,
+    }),
+  }),
+);
 app.use("/api/webhooks/stripe", stripeWebhookRoutes);
 app.use(express.json());
 

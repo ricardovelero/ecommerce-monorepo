@@ -14,18 +14,15 @@ RUN corepack enable
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=build /app/apps/worker/package.json ./apps/worker/package.json
 COPY --from=build /app/apps/backend/package.json ./apps/backend/package.json
-COPY --from=build /app/packages/shared-types/package.json ./packages/shared-types/package.json
 COPY --from=build /app/packages/queue/package.json ./packages/queue/package.json
 
-RUN pnpm install --filter @ecommerce/backend... --frozen-lockfile
+RUN pnpm install --filter @ecommerce/worker... --frozen-lockfile
 
-COPY --from=build /app/apps/backend/dist ./apps/backend/dist
+COPY --from=build /app/apps/worker/dist ./apps/worker/dist
 COPY --from=build /app/apps/backend/prisma ./apps/backend/prisma
-COPY --from=build /app/apps/frontend/dist ./apps/backend/public
 COPY --from=build /app/packages/queue/dist ./packages/queue/dist
-COPY --from=build /app/packages/shared-types/dist ./packages/shared-types/dist
 
-WORKDIR /app/apps/backend
-EXPOSE 4000
-CMD ["node", "dist/server.js"]
+WORKDIR /app/apps/worker
+CMD ["node", "dist/worker.js"]

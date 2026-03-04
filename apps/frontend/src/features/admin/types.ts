@@ -12,6 +12,7 @@ export interface AdminProduct {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   currency: string;
   imageUrl: string | null;
   categoryId: string;
@@ -26,6 +27,7 @@ export interface AdminProductInput {
   name: string;
   description: string;
   priceCents: number;
+  stock?: number;
   currency: string;
   imageUrl?: string | null;
   categoryId: string;

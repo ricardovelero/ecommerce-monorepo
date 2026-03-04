@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { findOrCreateFromAuth } from "@/services/userService";
-
 import { verifyJwt } from "./verifyJwt";
+
+import { findOrCreateFromAuth } from "@/services/userService";
 
 export function optionalAuth(req: Request, res: Response, next: NextFunction): void {
   if (!req.headers.authorization?.startsWith("Bearer ")) {

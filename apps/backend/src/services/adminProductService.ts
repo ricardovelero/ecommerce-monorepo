@@ -6,6 +6,7 @@ export interface AdminProductDTO {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   currency: string;
   imageUrl: string | null;
   categoryId: string;
@@ -21,6 +22,7 @@ function toAdminProductDTO(product: {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   currency: string;
   imageUrl: string | null;
   categoryId: string;
@@ -35,6 +37,7 @@ function toAdminProductDTO(product: {
     name: product.name,
     description: product.description,
     priceCents: product.priceCents,
+    stock: product.stock,
     currency: product.currency,
     imageUrl: product.imageUrl,
     categoryId: product.categoryId,
@@ -66,6 +69,7 @@ export async function createAdminProduct(input: {
   name: string;
   description: string;
   priceCents: number;
+  stock?: number;
   currency: string;
   imageUrl?: string | null;
   categoryId: string;
@@ -78,6 +82,7 @@ export async function createAdminProduct(input: {
       name: input.name,
       description: input.description,
       priceCents: input.priceCents,
+      stock: input.stock ?? 0,
       currency: input.currency,
       imageUrl: input.imageUrl,
       categoryId: input.categoryId,
@@ -95,6 +100,7 @@ export async function updateAdminProduct(input: {
   name: string;
   description: string;
   priceCents: number;
+  stock?: number;
   currency: string;
   imageUrl?: string | null;
   categoryId: string;
@@ -113,6 +119,7 @@ export async function updateAdminProduct(input: {
       name: input.name,
       description: input.description,
       priceCents: input.priceCents,
+      stock: input.stock,
       currency: input.currency,
       imageUrl: input.imageUrl,
       categoryId: input.categoryId,

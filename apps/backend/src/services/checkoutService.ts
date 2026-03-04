@@ -1,5 +1,4 @@
-import { CartStatus, OrderStatus, Prisma } from "@prisma/client";
-import Stripe from "stripe";
+import { CartStatus, Prisma } from "@prisma/client";
 
 import { env } from "@/config/env";
 import { prisma } from "@/db/prisma";
@@ -13,14 +12,8 @@ interface CheckoutCartItem {
     name: string;
     priceCents: number;
     currency: string;
+    stock: number;
   };
-}
-
-interface CheckoutCart {
-  id: string;
-  userId: string;
-  status: CartStatus;
-  items: CheckoutCartItem[];
 }
 
 function assertLanguage(value: string | undefined): "es" | "en" {
@@ -42,21 +35,11 @@ function getSingleCurrency(items: CheckoutCartItem[]): string {
   return firstCurrency;
 }
 
-function toStringOrNull(value: string | { id: string } | null): string | null {
-  if (!value) {
-    return null;
+function assertStockAvailability(items: CheckoutCartItem[]): void {
+  const unavailable = items.find((item) => item.quantity > item.product.stock);
+  if (unavailable) {
+    throw new HttpError(409, `Insufficient stock for product ${unavailable.product.name}`);
   }
-
-  return typeof value === "string" ? value : value.id;
-}
-
-function normalizeEmail(value: string | null | undefined): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim().toLowerCase();
-  return normalized || null;
 }
 
 export async function createCheckoutSession(input: {
@@ -84,6 +67,8 @@ export async function createCheckoutSession(input: {
   if (!cart || cart.items.length === 0) {
     throw new HttpError(400, "Open cart with items is required for checkout");
   }
+
+  assertStockAvailability(cart.items);
 
   const currency = getSingleCurrency(cart.items);
   const subtotalCents = calculateSubtotal(cart.items);
@@ -131,154 +116,6 @@ export async function createCheckoutSession(input: {
   }
 
   return { url: session.url };
-}
-
-async function createOrderFromCart(input: {
-  tx: Prisma.TransactionClient;
-  cart: CheckoutCart;
-  stripeCheckoutSessionId: string;
-  stripePaymentIntentId: string | null;
-  stripeCustomerId: string | null;
-}): Promise<void> {
-  const subtotalCents = calculateSubtotal(input.cart.items);
-  const currency = getSingleCurrency(input.cart.items);
-
-  await input.tx.order.create({
-    data: {
-      userId: input.cart.userId,
-      status: OrderStatus.PAID,
-      currency,
-      subtotalCents,
-      totalCents: subtotalCents,
-      stripeCheckoutSessionId: input.stripeCheckoutSessionId,
-      stripePaymentIntentId: input.stripePaymentIntentId,
-      stripeCustomerId: input.stripeCustomerId,
-      paidAt: new Date(),
-      createdById: input.cart.userId,
-      updatedById: input.cart.userId,
-      items: {
-        create: input.cart.items.map((item) => ({
-          productId: item.product.id,
-          nameSnapshot: item.product.name,
-          priceCentsSnapshot: item.product.priceCents,
-          quantity: item.quantity,
-        })),
-      },
-    },
-  });
-
-  await input.tx.cart.update({
-    where: { id: input.cart.id },
-    data: { status: CartStatus.CHECKED_OUT },
-  });
-}
-
-export async function processCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
-  const cartId = session.metadata?.cartId ?? session.client_reference_id;
-  const userId = session.metadata?.userId;
-
-  if (!cartId || !userId) {
-    console.warn("Stripe session missing required metadata", {
-      sessionId: session.id,
-      cartId,
-      userId,
-    });
-    return;
-  }
-
-  const stripePaymentIntentId = toStringOrNull(session.payment_intent);
-  const stripeCustomerId = typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
-  const checkoutEmail = normalizeEmail(session.customer_details?.email);
-
-  await prisma.$transaction(async (tx) => {
-    const existingBySession = await tx.order.findUnique({
-      where: { stripeCheckoutSessionId: session.id },
-      select: { id: true },
-    });
-
-    if (existingBySession) {
-      return;
-    }
-
-    if (stripePaymentIntentId) {
-      const existingByPaymentIntent = await tx.order.findUnique({
-        where: { stripePaymentIntentId },
-        select: { id: true },
-      });
-
-      if (existingByPaymentIntent) {
-        return;
-      }
-    }
-
-    const cart = await tx.cart.findUnique({
-      where: { id: cartId },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
-
-    if (!cart) {
-      console.warn("Stripe webhook cart not found", { cartId, sessionId: session.id });
-      return;
-    }
-
-    if (cart.userId !== userId) {
-      console.warn("Stripe webhook cart user mismatch", {
-        cartId,
-        cartUserId: cart.userId,
-        metadataUserId: userId,
-      });
-      return;
-    }
-
-    if (cart.status !== CartStatus.OPEN) {
-      return;
-    }
-
-    if (cart.items.length === 0) {
-      console.warn("Stripe webhook cart is empty", { cartId, sessionId: session.id });
-      return;
-    }
-
-    if (checkoutEmail) {
-      await tx.user.updateMany({
-        where: {
-          id: userId,
-          email: null,
-        },
-        data: {
-          email: checkoutEmail,
-        },
-      });
-    }
-
-    await createOrderFromCart({
-      tx,
-      cart,
-      stripeCheckoutSessionId: session.id,
-      stripePaymentIntentId,
-      stripeCustomerId,
-    });
-  });
-}
-
-export async function processPaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  await prisma.order.updateMany({
-    where: {
-      stripePaymentIntentId: paymentIntent.id,
-      status: {
-        not: OrderStatus.PAID,
-      },
-    },
-    data: {
-      status: OrderStatus.FAILED,
-    },
-  });
 }
 
 export async function registerWebhookEvent(input: {

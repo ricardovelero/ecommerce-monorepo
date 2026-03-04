@@ -2,8 +2,8 @@ import { Router } from "express";
 
 import { getMeController, updateMeEmailController } from "@/controllers/authController";
 import { requireAuth } from "@/middleware/auth/requireAuth";
-import { validate } from "@/middleware/validate";
 import { verifyJwt } from "@/middleware/auth/verifyJwt";
+import { validate } from "@/middleware/validate";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { updateMeEmailSchema } from "@/validators/authValidators";
 

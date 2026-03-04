@@ -5,6 +5,7 @@ export interface ProductDTO {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   currency: string;
   imageUrl?: string | null;
   categoryId: string;

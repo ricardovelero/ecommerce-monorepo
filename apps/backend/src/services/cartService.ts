@@ -71,8 +71,24 @@ export async function addCartItem(input: {
   if (!product) {
     throw new HttpError(404, "Product not found");
   }
+  if (product.stock <= 0) {
+    throw new HttpError(409, "Product is out of stock");
+  }
 
   const cart = await getOrCreateOpenCart(input.userId);
+  const existingItem = await prisma.cartItem.findUnique({
+    where: {
+      cartId_productId: {
+        cartId: cart.id,
+        productId: input.productId,
+      },
+    },
+  });
+  const nextQuantity = (existingItem?.quantity ?? 0) + input.quantity;
+
+  if (nextQuantity > product.stock) {
+    throw new HttpError(409, "Requested quantity exceeds available stock");
+  }
 
   await prisma.cartItem.upsert({
     where: {

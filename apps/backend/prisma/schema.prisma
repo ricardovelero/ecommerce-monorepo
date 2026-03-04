@@ -59,6 +59,7 @@ model Product {
   name        String   @unique
   description String
   priceCents  Int
+  stock       Int      @default(0)
   currency    String   @default("EUR")
   imageUrl    String?
   categoryId  String

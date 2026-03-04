@@ -8,6 +8,7 @@ function toProductDTO(product: {
   name: string;
   description: string;
   priceCents: number;
+  stock: number;
   currency: string;
   imageUrl: string | null;
   categoryId: string;
@@ -18,6 +19,7 @@ function toProductDTO(product: {
     name: product.name,
     description: product.description,
     priceCents: product.priceCents,
+    stock: product.stock,
     currency: product.currency,
     imageUrl: product.imageUrl,
     categoryId: product.categoryId,

@@ -7,11 +7,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel --filter @ecommerce/backend --filter @ecommerce/frontend dev",
+    "dev": "pnpm --filter @ecommerce/queue build && pnpm -r --parallel --filter @ecommerce/backend --filter @ecommerce/frontend --filter @ecommerce/worker --filter @ecommerce/queue dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
-    "db:up": "docker compose up -d postgres",
+    "db:up": "docker compose up -d postgres redis",
     "db:down": "docker compose down",
     "prisma:migrate": "DATABASE_URL=${DATABASE_URL:-postgresql://ecommerce:ecommerce@localhost:5432/ecommerce?schema=public} pnpm --filter @ecommerce/backend prisma:migrate",
     "prisma:seed": "DATABASE_URL=${DATABASE_URL:-postgresql://ecommerce:ecommerce@localhost:5432/ecommerce?schema=public} pnpm --filter @ecommerce/backend prisma:seed"
