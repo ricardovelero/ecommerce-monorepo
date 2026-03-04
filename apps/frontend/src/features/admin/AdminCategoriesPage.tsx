@@ -1,21 +1,37 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ErrorState } from "@/components/ErrorState";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { AdminNav } from "@/features/admin/AdminNav";
-import type { AdminCategory } from "@/features/admin/types";
-import { useHttpClient } from "@/features/shared/api/useHttpClient";
+import {
+  useAdminCategories,
+  useCreateAdminCategory,
+  useDeleteAdminCategory,
+  useUpdateAdminCategory,
+} from "@/features/admin/hooks/useAdminCategories";
 
 export function AdminCategoriesPage() {
-  const http = useHttpClient();
+  const { t } = useTranslation();
   const { notify } = useToast();
 
-  const [categories, setCategories] = useState<AdminCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories = [], isLoading, isError, refetch } = useAdminCategories();
+  const createCategory = useCreateAdminCategory();
+  const updateCategory = useUpdateAdminCategory();
+  const deleteCategoryMutation = useDeleteAdminCategory();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,17 +40,6 @@ export function AdminCategoriesPage() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
-    const response = await http.get<AdminCategory[]>("/api/admin/categories");
-    setCategories(response);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
-
   function openCreateDialog() {
     setEditingId(null);
     setName("");
@@ -42,41 +47,55 @@ export function AdminCategoriesPage() {
     setDialogOpen(true);
   }
 
-  function openEditDialog(category: AdminCategory) {
+  function openEditDialog(category: { id: string; name: string }) {
     setEditingId(category.id);
     setName(category.name);
     setError(null);
     setDialogOpen(true);
   }
 
-  async function submitForm() {
+  function submitForm() {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError("Name is required");
+      setError(t("admin.validation.nameRequired"));
       return;
     }
 
     if (editingId) {
-      await http.put(`/api/admin/categories/${editingId}`, { name: trimmedName });
-      notify("Category updated");
-    } else {
-      await http.post("/api/admin/categories", { name: trimmedName });
-      notify("Category created");
+      updateCategory.mutate(
+        { id: editingId, name: trimmedName },
+        {
+          onSuccess: () => {
+            notify(t("toast.categoryUpdated"));
+            setDialogOpen(false);
+          },
+          onError: () => setError(t("errors.generic")),
+        },
+      );
+      return;
     }
 
-    setDialogOpen(false);
-    await load();
+    createCategory.mutate(trimmedName, {
+      onSuccess: () => {
+        notify(t("toast.categoryCreated"));
+        setDialogOpen(false);
+      },
+      onError: () => setError(t("errors.generic")),
+    });
   }
 
-  async function deleteCategory() {
+  function deleteCategory() {
     if (!deleteId) {
       return;
     }
 
-    await http.delete(`/api/admin/categories/${deleteId}`);
-    notify("Category deleted");
-    setDeleteId(null);
-    await load();
+    deleteCategoryMutation.mutate(deleteId, {
+      onSuccess: () => {
+        notify(t("toast.categoryDeleted"));
+        setDeleteId(null);
+      },
+      onError: () => notify(t("errors.generic")),
+    });
   }
 
   return (
@@ -84,19 +103,26 @@ export function AdminCategoriesPage() {
       <AdminNav />
 
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Admin Categories</h1>
-        <Button onClick={openCreateDialog}>New category</Button>
+        <h1 className="text-2xl font-semibold">{t("admin.categories.title")}</h1>
+        <Button onClick={openCreateDialog}>{t("admin.categories.new")}</Button>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading categories...</p>
+      {isLoading ? (
+        <AdminTableSkeleton />
+      ) : isError ? (
+        <ErrorState
+          title={t("errors.adminCategoriesTitle")}
+          description={t("errors.adminCategoriesDescription")}
+          actionLabel={t("errors.retry")}
+          onAction={() => void refetch()}
+        />
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Updated</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("admin.categories.columns.name")}</TableHead>
+              <TableHead>{t("admin.categories.columns.updated")}</TableHead>
+              <TableHead className="text-right">{t("admin.categories.columns.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -107,10 +133,10 @@ export function AdminCategoriesPage() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="outline" onClick={() => openEditDialog(category)}>
-                      Edit
+                      {t("common.edit")}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setDeleteId(category.id)}>
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </div>
                 </TableCell>
@@ -123,19 +149,24 @@ export function AdminCategoriesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit category" : "Create category"}</DialogTitle>
+            <DialogTitle>{editingId ? t("admin.categories.edit") : t("admin.categories.create")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-2">
-            <Input placeholder="Name" value={name} onChange={(event) => setName(event.target.value)} />
+            <label htmlFor="category-name" className="text-sm font-medium">
+              {t("admin.categories.form.name")}
+            </label>
+            <Input id="category-name" value={name} onChange={(event) => setName(event.target.value)} />
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button onClick={() => void submitForm()}>{editingId ? "Save changes" : "Create"}</Button>
+            <Button onClick={submitForm} disabled={createCategory.isPending || updateCategory.isPending}>
+              {editingId ? t("common.save") : t("common.create")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -143,19 +174,29 @@ export function AdminCategoriesPage() {
       <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete category</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. Categories with linked products cannot be deleted.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("admin.categories.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.categories.deleteDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button onClick={() => void deleteCategory()}>Delete</Button>
+            <Button onClick={deleteCategory} disabled={deleteCategoryMutation.isPending}>
+              {t("common.delete")}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </section>
+  );
+}
+
+function AdminTableSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Skeleton key={index} className="h-10 w-full" />
+      ))}
+    </div>
   );
 }

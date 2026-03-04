@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import { AppHeader } from "@/components/layout/AppHeader";
-import i18n from "@/i18n";
+import i18n, { languageStorageKey } from "@/i18n";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { lang } = useParams();
@@ -13,6 +13,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     if (i18n.language !== target) {
       void i18n.changeLanguage(target);
     }
+    window.localStorage.setItem(languageStorageKey, target);
   }, [lang]);
 
   return (

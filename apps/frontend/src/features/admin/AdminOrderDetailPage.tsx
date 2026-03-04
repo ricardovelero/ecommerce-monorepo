@@ -1,67 +1,64 @@
-import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
+import { ErrorState } from "@/components/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminNav } from "@/features/admin/AdminNav";
-import type { Order } from "@/features/orders/types";
-import { useHttpClient } from "@/features/shared/api/useHttpClient";
+import { useAdminOrder } from "@/features/admin/hooks/useAdminOrders";
 import { formatPrice } from "@/lib/utils";
 
 export function AdminOrderDetailPage() {
-  const http = useHttpClient();
+  const { t } = useTranslation();
   const { id, lang } = useParams();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: order, isLoading, isError, refetch } = useAdminOrder(id);
   const prefix = `/${lang ?? "es"}/admin`;
   const locale = lang === "en" ? "en-US" : "es-ES";
-
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-
-    http
-      .get<Order>(`/api/admin/orders/${id}`)
-      .then(setOrder)
-      .finally(() => setLoading(false));
-  }, [http, id]);
 
   return (
     <section className="space-y-4">
       <AdminNav />
       <Button asChild size="sm" variant="outline">
-        <Link to={`${prefix}/orders`}>Back to orders</Link>
+        <Link to={`${prefix}/orders`}>{t("admin.orders.back")}</Link>
       </Button>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading order...</p>
+      {isLoading ? (
+        <Skeleton className="h-64 w-full" />
+      ) : isError ? (
+        <ErrorState
+          title={t("errors.adminOrderTitle")}
+          description={t("errors.adminOrderDescription")}
+          actionLabel={t("errors.retry")}
+          onAction={() => void refetch()}
+        />
       ) : !order ? (
-        <p className="text-sm text-muted-foreground">Order not found.</p>
+        <p className="text-sm text-muted-foreground">{t("errors.notFound")}</p>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Order {order.id}</CardTitle>
+            <CardTitle>{t("admin.orders.detailTitle", { id: order.id })}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2 text-sm">
-              <p>Status: {order.status}</p>
-              <p>Total: {formatPrice(order.totalCents, order.currency, locale)}</p>
-              <p>Stripe session: {order.stripeCheckoutSessionId ?? "-"}</p>
-              <p>Stripe payment intent: {order.stripePaymentIntentId ?? "-"}</p>
-              <p>Stripe customer: {order.stripeCustomerId ?? "-"}</p>
-              <p>Paid at: {order.paidAt ? new Date(order.paidAt).toLocaleString(locale) : "-"}</p>
+              <p>{t("admin.orders.status")}: {order.status}</p>
+              <p>{t("admin.orders.total")}: {formatPrice(order.totalCents, order.currency, locale)}</p>
+              <p>{t("admin.orders.session")}: {order.stripeCheckoutSessionId ?? "-"}</p>
+              <p>{t("admin.orders.intent")}: {order.stripePaymentIntentId ?? "-"}</p>
+              <p>{t("admin.orders.customer")}: {order.stripeCustomerId ?? "-"}</p>
+              <p>
+                {t("admin.orders.paidAt")}: {order.paidAt ? new Date(order.paidAt).toLocaleString(locale) : "-"}
+              </p>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead>{t("admin.orders.item")}</TableHead>
+                  <TableHead>{t("admin.orders.quantity")}</TableHead>
+                  <TableHead>{t("admin.orders.unit")}</TableHead>
+                  <TableHead>{t("admin.orders.total")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

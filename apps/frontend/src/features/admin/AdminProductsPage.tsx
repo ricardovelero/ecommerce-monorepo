@@ -1,15 +1,31 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ErrorState } from "@/components/ErrorState";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { AdminNav } from "@/features/admin/AdminNav";
-import type { AdminCategory, AdminProduct, AdminProductInput } from "@/features/admin/types";
-import { useHttpClient } from "@/features/shared/api/useHttpClient";
+import { useAdminCategories } from "@/features/admin/hooks/useAdminCategories";
+import {
+  useCreateAdminProduct,
+  useDeleteAdminProduct,
+  useUpdateAdminProduct,
+  useAdminProducts,
+} from "@/features/admin/hooks/useAdminProducts";
+import type { AdminProduct, AdminProductInput } from "@/features/admin/types";
 
 const EMPTY_FORM: AdminProductInput = {
   name: "",
@@ -21,12 +37,14 @@ const EMPTY_FORM: AdminProductInput = {
 };
 
 export function AdminProductsPage() {
-  const http = useHttpClient();
+  const { t } = useTranslation();
   const { notify } = useToast();
 
-  const [products, setProducts] = useState<AdminProduct[]>([]);
-  const [categories, setCategories] = useState<AdminCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: products = [], isLoading, isError, refetch } = useAdminProducts();
+  const { data: categories = [] } = useAdminCategories();
+  const createProduct = useCreateAdminProduct();
+  const updateProduct = useUpdateAdminProduct();
+  const deleteProductMutation = useDeleteAdminProduct();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,28 +53,16 @@ export function AdminProductsPage() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
-    const [productsResponse, categoriesResponse] = await Promise.all([
-      http.get<AdminProduct[]>("/api/admin/products"),
-      http.get<AdminCategory[]>("/api/admin/categories"),
-    ]);
+  const isSubmitting = createProduct.isPending || updateProduct.isPending;
 
-    setProducts(productsResponse);
-    setCategories(categoriesResponse);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const categoryOptions = useMemo(() => categories, [categories]);
 
   function openCreateDialog() {
     setEditingId(null);
     setError(null);
     setForm({
       ...EMPTY_FORM,
-      categoryId: categories[0]?.id ?? "",
+      categoryId: categoryOptions[0]?.id ?? "",
     });
     setDialogOpen(true);
   }
@@ -75,9 +81,9 @@ export function AdminProductsPage() {
     setDialogOpen(true);
   }
 
-  async function submitForm() {
+  function submitForm() {
     if (!form.name.trim() || !form.description.trim() || !form.categoryId.trim() || form.priceCents < 1) {
-      setError("Please complete all required fields");
+      setError(t("admin.validation.requiredFields"));
       return;
     }
 
@@ -90,26 +96,40 @@ export function AdminProductsPage() {
     };
 
     if (editingId) {
-      await http.put(`/api/admin/products/${editingId}`, payload);
-      notify("Product updated");
-    } else {
-      await http.post("/api/admin/products", payload);
-      notify("Product created");
+      updateProduct.mutate(
+        { id: editingId, payload },
+        {
+          onSuccess: () => {
+            notify(t("toast.productUpdated"));
+            setDialogOpen(false);
+          },
+          onError: () => setError(t("errors.generic")),
+        },
+      );
+      return;
     }
 
-    setDialogOpen(false);
-    await load();
+    createProduct.mutate(payload, {
+      onSuccess: () => {
+        notify(t("toast.productCreated"));
+        setDialogOpen(false);
+      },
+      onError: () => setError(t("errors.generic")),
+    });
   }
 
-  async function deleteProduct() {
+  function deleteProduct() {
     if (!deleteId) {
       return;
     }
 
-    await http.delete(`/api/admin/products/${deleteId}`);
-    notify("Product deleted");
-    setDeleteId(null);
-    await load();
+    deleteProductMutation.mutate(deleteId, {
+      onSuccess: () => {
+        notify(t("toast.productDeleted"));
+        setDeleteId(null);
+      },
+      onError: () => notify(t("errors.generic")),
+    });
   }
 
   return (
@@ -117,21 +137,28 @@ export function AdminProductsPage() {
       <AdminNav />
 
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Admin Products</h1>
-        <Button onClick={openCreateDialog}>New product</Button>
+        <h1 className="text-2xl font-semibold">{t("admin.products.title")}</h1>
+        <Button onClick={openCreateDialog}>{t("admin.products.new")}</Button>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading products...</p>
+      {isLoading ? (
+        <AdminTableSkeleton />
+      ) : isError ? (
+        <ErrorState
+          title={t("errors.adminProductsTitle")}
+          description={t("errors.adminProductsDescription")}
+          actionLabel={t("errors.retry")}
+          onAction={() => void refetch()}
+        />
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Currency</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("admin.products.columns.name")}</TableHead>
+              <TableHead>{t("admin.products.columns.category")}</TableHead>
+              <TableHead>{t("admin.products.columns.price")}</TableHead>
+              <TableHead>{t("admin.products.columns.currency")}</TableHead>
+              <TableHead className="text-right">{t("admin.products.columns.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -144,10 +171,10 @@ export function AdminProductsPage() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="outline" onClick={() => openEditDialog(product)}>
-                      Edit
+                      {t("common.edit")}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setDeleteId(product.id)}>
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </div>
                 </TableCell>
@@ -160,66 +187,99 @@ export function AdminProductsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit product" : "Create product"}</DialogTitle>
+            <DialogTitle>{editingId ? t("admin.products.edit") : t("admin.products.create")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3">
-            <Input
-              placeholder="Name"
-              value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-            />
-            <Textarea
-              placeholder="Description"
-              value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-            />
-            <Input
-              type="number"
-              min={1}
-              placeholder="Price (cents)"
-              value={String(form.priceCents)}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  priceCents: Number(event.target.value),
-                }))
-              }
-            />
-            <Input
-              placeholder="Currency (EUR)"
-              value={form.currency}
-              onChange={(event) => setForm((prev) => ({ ...prev, currency: event.target.value }))}
-            />
-            <Input
-              placeholder="Image URL (optional)"
-              value={form.imageUrl ?? ""}
-              onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-            />
+            <div className="space-y-1">
+              <label htmlFor="product-name" className="text-sm font-medium">
+                {t("admin.products.form.name")}
+              </label>
+              <Input
+                id="product-name"
+                value={form.name}
+                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="product-description" className="text-sm font-medium">
+                {t("admin.products.form.description")}
+              </label>
+              <Textarea
+                id="product-description"
+                value={form.description}
+                onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="product-price" className="text-sm font-medium">
+                {t("admin.products.form.priceCents")}
+              </label>
+              <Input
+                id="product-price"
+                type="number"
+                min={1}
+                value={String(form.priceCents)}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    priceCents: Number(event.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="product-currency" className="text-sm font-medium">
+                {t("admin.products.form.currency")}
+              </label>
+              <Input
+                id="product-currency"
+                value={form.currency}
+                onChange={(event) => setForm((prev) => ({ ...prev, currency: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="product-image" className="text-sm font-medium">
+                {t("admin.products.form.imageUrl")}
+              </label>
+              <Input
+                id="product-image"
+                value={form.imageUrl ?? ""}
+                onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
+            </div>
 
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={form.categoryId}
-              onChange={(event) => setForm((prev) => ({ ...prev, categoryId: event.target.value }))}
-            >
-              <option value="" disabled>
-                Select category
-              </option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
+            <div className="space-y-1">
+              <label htmlFor="product-category" className="text-sm font-medium">
+                {t("admin.products.form.category")}
+              </label>
+              <select
+                id="product-category"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.categoryId}
+                onChange={(event) => setForm((prev) => ({ ...prev, categoryId: event.target.value }))}
+              >
+                <option value="" disabled>
+                  {t("admin.products.form.selectCategory")}
                 </option>
-              ))}
-            </select>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button onClick={() => void submitForm()}>{editingId ? "Save changes" : "Create"}</Button>
+            <Button onClick={submitForm} disabled={isSubmitting}>
+              {editingId ? t("common.save") : t("common.create")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -227,17 +287,29 @@ export function AdminProductsPage() {
       <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete product</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>{t("admin.products.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.products.deleteDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button onClick={() => void deleteProduct()}>Delete</Button>
+            <Button onClick={deleteProduct} disabled={deleteProductMutation.isPending}>
+              {t("common.delete")}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </section>
+  );
+}
+
+function AdminTableSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Skeleton key={index} className="h-10 w-full" />
+      ))}
+    </div>
   );
 }

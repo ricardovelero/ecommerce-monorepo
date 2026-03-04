@@ -1,13 +1,53 @@
-# Ecommerce Monorepo (Phase 3)
+# Ecommerce Monorepo
 
-Production-ready monorepo skeleton for a small e-commerce app using `pnpm` workspaces.
+Production-ready pnpm monorepo for an e-commerce showcase.
 
-## Stack
+## Architecture Overview
+
+The project is organized as a workspace monorepo:
+
+- `apps/frontend`: React + Vite storefront/admin UI.
+- `apps/backend`: Express API with Prisma + PostgreSQL.
+- `packages/shared-types`: shared DTOs and domain types used by both apps.
+
+Frontend follows a feature-first structure:
+
+- `src/features/products`
+- `src/features/cart`
+- `src/features/orders`
+- `src/features/admin`
+- `src/features/auth`
+- shared app providers in `src/providers`
+
+Data layer is centralized with TanStack Query and feature-level hooks (`features/*/hooks`) so components do not call `fetch` directly.
+
+## Tech Stack
+
 - Monorepo: pnpm workspaces
-- Frontend: Vite + React + TypeScript + Tailwind + shadcn-style UI
-- Backend: Node + Express + TypeScript + Prisma + Zod
-- DB (local): Postgres via `docker compose`
-- Shared package: `packages/shared-types`
+- Frontend: React 18, Vite 6, TypeScript, Tailwind, shadcn-style components, TanStack Query, react-i18next
+- Auth (frontend): Clerk via local auth abstraction (`AuthClient`)
+- Backend: Node.js, Express, TypeScript, Prisma, Zod, JOSE
+- Database: PostgreSQL
+- Payments: Stripe Checkout + Webhook order confirmation
+
+## Auth Flow
+
+1. User authenticates through Clerk in frontend.
+2. Frontend obtains JWT with Clerk SDK (`getToken`).
+3. API client sends `Authorization: Bearer <token>`.
+4. Backend verifies JWT with JOSE middleware.
+5. RBAC middleware (`requireRole`) protects admin API routes.
+
+Frontend admin routes are additionally guarded with `RequireRole`.
+
+## Stripe Checkout Flow
+
+1. User opens cart and clicks checkout.
+2. Frontend calls `POST /api/checkout/session`.
+3. Backend creates Stripe Checkout session and returns redirect URL.
+4. Frontend redirects browser to Stripe-hosted checkout.
+5. Stripe webhook confirms payment and creates/updates order server-side.
+6. User returns to `/checkout/success`, then can open `/account/orders`.
 
 ## Repository Structure
 
@@ -22,56 +62,42 @@ ecommerce-monorepo/
     postgres/
   docker-compose.yml
   pnpm-workspace.yaml
-  package.json
-  .editorconfig
-  .gitignore
-  README.md
 ```
 
 ## Prerequisites
+
 - Node.js 20+
 - pnpm 10+
 - Docker + Docker Compose
+- Stripe CLI (for local webhook forwarding)
 
 ## Environment Variables
 
-Copy the example files:
+Copy example files:
 
 ```bash
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env
 ```
 
-Backend (`apps/backend/.env`):
+Backend (`apps/backend/.env`) minimum values:
+
 - `PORT=4000`
 - `DATABASE_URL=postgresql://ecommerce:ecommerce@localhost:5432/ecommerce?schema=public`
-- `FRONTEND_DIST_PATH=../public`
 - `ADMIN_EMAIL=admin@example.com`
 - `CLERK_JWKS_URL=...`
 - `CLERK_ISSUER=...`
-- `CLERK_AUDIENCE=...` (optional)
 - `STRIPE_SECRET_KEY=sk_test_...`
 - `STRIPE_WEBHOOK_SECRET=whsec_...`
 - `APP_URL=http://localhost:5173`
 - `API_URL=http://localhost:4000`
 
 Frontend (`apps/frontend/.env`):
+
 - `VITE_API_BASE_URL=http://localhost:4000`
 - `VITE_CLERK_PUBLISHABLE_KEY=pk_test_replace_me`
 
-## Stripe Webhooks (Local)
-
-Use Stripe CLI to forward events to the backend:
-
-```bash
-stripe listen --forward-to localhost:4000/api/webhooks/stripe
-```
-
-Copy the printed webhook secret into `STRIPE_WEBHOOK_SECRET`.
-
-## Local Development
-
-From monorepo root:
+## Run Locally
 
 ```bash
 pnpm install
@@ -82,100 +108,40 @@ pnpm dev
 ```
 
 Apps:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:4000
-- Health check: http://localhost:4000/health
 
-## Available Scripts
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:4000`
 
-At root:
-- `pnpm dev` runs backend + frontend in parallel
-- `pnpm build` builds shared types + backend + frontend
-- `pnpm db:up` starts local Postgres
-- `pnpm db:down` stops Postgres
-- `pnpm prisma:migrate` runs backend migration
-- `pnpm prisma:seed` seeds 2 categories and 6 products
+## Test Checkout Locally
 
-## API Endpoints
-- `GET /health`
-- `GET /api/products`
-- `GET /api/products/:id`
-- `GET /api/cart`
-  - Uses optional auth and returns a dev empty cart when no auth token is present.
-- `POST /api/cart/items`
-- `DELETE /api/cart/items/:id`
-- `POST /api/checkout/session`
-- `POST /api/webhooks/stripe`
-- `GET /api/orders`
-- `GET /api/orders/:id`
-- `GET /api/admin/orders`
-- `GET /api/admin/orders/:id`
-
-## Auth Boundary (Frontend)
-
-Auth abstraction lives in:
-- `src/features/auth/domain/AuthClient.ts`
-- `src/features/auth/infrastructure/clerk/ClerkAuthClient.ts`
-- `src/features/auth/hooks/useAuthClient.ts`
-
-Outside this feature (and app root provider), no module imports Clerk directly.
-
-## i18n Routing
-- `/` redirects to `/es`
-- `/es/*` and `/en/*` route groups
-- `react-i18next` with `es` and `en` translation files
-- Language switcher updates URL prefix
-
-## Docker
-
-### Local DB only (selected for simplicity)
-`docker-compose.yml` runs only Postgres for local development.
-
-### Frontend image
+1. Start apps and DB (`pnpm dev` + `pnpm db:up`).
+2. In a separate terminal forward Stripe webhooks:
 
 ```bash
-docker build -f apps/frontend/Dockerfile -t ecommerce-frontend .
+stripe listen --forward-to localhost:4000/api/webhooks/stripe
 ```
 
-### Single-container backend + frontend image (Cloud Run ready)
+3. Copy returned webhook secret into `apps/backend/.env` as `STRIPE_WEBHOOK_SECRET`.
+4. Sign in, add products to cart, and start checkout.
+5. Complete payment with Stripe test card values.
+6. Confirm redirect to `/checkout/success` and verify order in `/account/orders`.
 
-Backend Dockerfile builds whole monorepo, compiles frontend, and serves frontend assets from Express static:
+## Screenshots
 
-```bash
-docker build -f apps/backend/Dockerfile -t ecommerce-app .
-```
+Add screenshots here after running locally:
 
-Run container:
+- `docs/screenshots/storefront.png` (storefront)
+- `docs/screenshots/cart.png` (cart)
+- `docs/screenshots/checkout.png` (checkout)
+- `docs/screenshots/admin-dashboard.png` (admin dashboard)
 
-```bash
-docker run --rm -p 4000:4000 \
-  -e PORT=4000 \
-  -e DATABASE_URL='postgresql://ecommerce:ecommerce@host.docker.internal:5432/ecommerce?schema=public' \
-  ecommerce-app
-```
+## Useful Commands
 
-## Deployment Notes (Google Cloud Run)
-1. Build and push backend image (`apps/backend/Dockerfile`) to Artifact Registry.
-2. Deploy Cloud Run service on port `4000`.
-3. Set environment variables in Cloud Run:
-   - `PORT=4000`
-   - `DATABASE_URL=<Cloud SQL or managed Postgres URL>`
-   - `NODE_ENV=production`
-4. If using Cloud SQL, configure private networking or Cloud SQL connector.
-5. Configure Clerk publishable key in frontend build pipeline if building frontend separately.
-
-## Current Scope
-Included:
-- Monorepo architecture
-- Product and cart API skeleton
-- RBAC + verified auth + admin CRUD
-- Stripe Checkout session + webhook order conversion
-- Orders API (user + admin)
-- Prisma models and seed data
-- Frontend pages: Home, Products, Product Detail, Cart, Account, Admin, Checkout success/cancel, Order history
-- i18n and auth abstraction
-
-Not included:
-- Automated tests
-- Rate limiting and advanced observability
-- Refund automation
+- `pnpm dev`: run backend + frontend
+- `pnpm build`: build all packages/apps
+- `pnpm --filter @ecommerce/frontend lint`: lint frontend
+- `pnpm --filter @ecommerce/frontend build`: typecheck + build frontend
+- `pnpm db:up`: start Postgres
+- `pnpm db:down`: stop Postgres
+- `pnpm prisma:migrate`: apply backend migrations
+- `pnpm prisma:seed`: seed initial data

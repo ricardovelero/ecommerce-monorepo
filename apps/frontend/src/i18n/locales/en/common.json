@@ -1,37 +1,202 @@
 {
   "brand": "Sol iO",
   "nav": {
+    "label": "Main navigation",
     "home": "Home",
     "products": "Products",
     "cart": "Cart",
     "account": "Account",
     "admin": "Admin"
   },
+  "language": {
+    "label": "Language",
+    "switcher": "Language switcher",
+    "spanish": "Switch to Spanish",
+    "english": "Switch to English"
+  },
   "home": {
-    "title": "E-commerce starter",
-    "subtitle": "Modular architecture with decoupled frontend and backend."
+    "title": "E-commerce storefront",
+    "subtitle": "Feature-first frontend with checkout and admin capabilities."
   },
   "products": {
     "title": "Products",
     "view": "View details",
-    "add": "Add to cart"
+    "add": "Add to cart",
+    "noImage": "No image available",
+    "addAria": "Add {{name}} to cart"
   },
   "cart": {
     "title": "Your cart",
-    "empty": "Your cart is empty"
+    "empty": "Your cart is empty",
+    "quantity": "Quantity",
+    "quantityAria": "Quantity for {{name}}",
+    "removeAria": "Remove {{name}} from cart",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "redirecting": "Redirecting..."
   },
   "account": {
     "title": "Account",
     "signin": "Sign in",
-    "signout": "Sign out"
+    "signout": "Sign out",
+    "statusAuthenticated": "Authenticated",
+    "statusGuest": "Guest",
+    "orders": "Order history",
+    "orderHistoryTitle": "Order history",
+    "orderDetailTitle": "Order detail",
+    "loadingOrders": "Loading orders...",
+    "loadingOrder": "Loading order...",
+    "noOrders": "No orders yet.",
+    "orderNotFound": "Order not found.",
+    "backToOrders": "Back to orders",
+    "columns": {
+      "order": "Order",
+      "status": "Status",
+      "total": "Total",
+      "date": "Date",
+      "action": "Action"
+    },
+    "detail": {
+      "orderId": "Order ID",
+      "status": "Status",
+      "total": "Total",
+      "created": "Created",
+      "item": "Item",
+      "quantity": "Quantity",
+      "unitPrice": "Unit price"
+    }
+  },
+  "checkout": {
+    "successTitle": "Payment received",
+    "successDescription": "Your payment was successful. Order confirmation is processed server-side.",
+    "orderHistory": "Go to order history",
+    "backHome": "Back to home",
+    "cancelTitle": "Checkout cancelled",
+    "cancelDescription": "Your payment was cancelled. Your cart is still available.",
+    "returnCart": "Return to cart",
+    "continueShopping": "Continue shopping"
   },
   "admin": {
-    "title": "Admin dashboard",
-    "placeholder": "Will be implemented in Phase 2"
+    "nav": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "categories": "Categories",
+      "orders": "Orders"
+    },
+    "dashboard": {
+      "productsDescription": "Create, edit and remove catalog products.",
+      "productsLink": "Open products admin",
+      "categoriesDescription": "Manage available categories for catalog organization.",
+      "categoriesLink": "Open categories admin",
+      "ordersDescription": "Track payment status and Stripe metadata for orders.",
+      "ordersLink": "Open orders admin"
+    },
+    "products": {
+      "title": "Admin Products",
+      "new": "New product",
+      "create": "Create product",
+      "edit": "Edit product",
+      "deleteTitle": "Delete product",
+      "deleteDescription": "This action cannot be undone.",
+      "columns": {
+        "name": "Name",
+        "category": "Category",
+        "price": "Price",
+        "currency": "Currency",
+        "actions": "Actions"
+      },
+      "form": {
+        "name": "Name",
+        "description": "Description",
+        "priceCents": "Price (cents)",
+        "currency": "Currency",
+        "imageUrl": "Image URL (optional)",
+        "category": "Category",
+        "selectCategory": "Select category"
+      }
+    },
+    "categories": {
+      "title": "Admin Categories",
+      "new": "New category",
+      "create": "Create category",
+      "edit": "Edit category",
+      "deleteTitle": "Delete category",
+      "deleteDescription": "This action cannot be undone. Categories with linked products cannot be deleted.",
+      "columns": {
+        "name": "Name",
+        "updated": "Updated",
+        "actions": "Actions"
+      },
+      "form": {
+        "name": "Name"
+      }
+    },
+    "orders": {
+      "title": "Admin Orders",
+      "back": "Back to orders",
+      "detailTitle": "Order {{id}}",
+      "columns": {
+        "order": "Order",
+        "user": "User",
+        "status": "Status",
+        "total": "Total",
+        "paidAt": "Paid at",
+        "action": "Action"
+      },
+      "status": "Status",
+      "total": "Total",
+      "session": "Stripe session",
+      "intent": "Stripe payment intent",
+      "customer": "Stripe customer",
+      "paidAt": "Paid at",
+      "item": "Item",
+      "quantity": "Quantity",
+      "unit": "Unit"
+    },
+    "validation": {
+      "requiredFields": "Please complete all required fields",
+      "nameRequired": "Name is required"
+    }
   },
-  "language": "Language",
+  "common": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "create": "Create",
+    "detail": "Detail"
+  },
+  "errors": {
+    "retry": "Retry",
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Resource not found.",
+    "productsTitle": "Unable to load products",
+    "productsDescription": "Please refresh and try again.",
+    "productTitle": "Unable to load product",
+    "productDescription": "Please refresh and try again.",
+    "cartTitle": "Unable to load cart",
+    "cartDescription": "Please refresh and try again.",
+    "adminProductsTitle": "Unable to load products",
+    "adminProductsDescription": "Please retry in a few seconds.",
+    "adminCategoriesTitle": "Unable to load categories",
+    "adminCategoriesDescription": "Please retry in a few seconds.",
+    "adminOrdersTitle": "Unable to load orders",
+    "adminOrdersDescription": "Please retry in a few seconds.",
+    "adminOrderTitle": "Unable to load order",
+    "adminOrderDescription": "Please retry in a few seconds."
+  },
   "toast": {
     "added": "Product added",
-    "removed": "Product removed"
+    "removed": "Product removed",
+    "cartError": "Unable to update cart",
+    "checkoutError": "Unable to start checkout",
+    "orderCreated": "Order created",
+    "productCreated": "Product created",
+    "productUpdated": "Product updated",
+    "productDeleted": "Product deleted",
+    "categoryCreated": "Category created",
+    "categoryUpdated": "Category updated",
+    "categoryDeleted": "Category deleted"
   }
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { AdminNav } from "@/features/admin/AdminNav";
 
 export function AdminDashboard() {
   const { lang } = useParams();
+  const { t } = useTranslation();
   const prefix = `/${lang ?? "es"}/admin`;
 
   return (
@@ -13,34 +15,34 @@ export function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Products</CardTitle>
+            <CardTitle>{t("admin.products.title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-muted-foreground">Create, edit and remove catalog products.</p>
+            <p className="mb-3 text-sm text-muted-foreground">{t("admin.dashboard.productsDescription")}</p>
             <Link className="text-sm font-medium underline" to={`${prefix}/products`}>
-              Open products admin
+              {t("admin.dashboard.productsLink")}
             </Link>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Categories</CardTitle>
+            <CardTitle>{t("admin.categories.title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-muted-foreground">Manage available categories for catalog organization.</p>
+            <p className="mb-3 text-sm text-muted-foreground">{t("admin.dashboard.categoriesDescription")}</p>
             <Link className="text-sm font-medium underline" to={`${prefix}/categories`}>
-              Open categories admin
+              {t("admin.dashboard.categoriesLink")}
             </Link>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
+            <CardTitle>{t("admin.orders.title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-muted-foreground">Track payment status and Stripe metadata for orders.</p>
+            <p className="mb-3 text-sm text-muted-foreground">{t("admin.dashboard.ordersDescription")}</p>
             <Link className="text-sm font-medium underline" to={`${prefix}/orders`}>
-              Open orders admin
+              {t("admin.dashboard.ordersLink")}
             </Link>
           </CardContent>
         </Card>

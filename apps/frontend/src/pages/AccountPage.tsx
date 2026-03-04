@@ -17,11 +17,11 @@ export function AccountPage() {
         <CardTitle>{t("account.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p>{authClient.isAuthenticated() ? "Authenticated" : "Guest"}</p>
+        <p>{authClient.isAuthenticated() ? t("account.statusAuthenticated") : t("account.statusGuest")}</p>
         {authClient.isAuthenticated() ? (
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link to={`${prefix}/account/orders`}>Order history</Link>
+              <Link to={`${prefix}/account/orders`}>{t("account.orders")}</Link>
             </Button>
             <Button onClick={() => void authClient.signOut()}>{t("account.signout")}</Button>
           </div>

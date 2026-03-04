@@ -1,17 +1,21 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
+import { ErrorState } from "@/components/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
-import { useOrder } from "@/features/orders/useOrders";
+import { useOrder } from "@/features/orders/hooks/useOrder";
 import { formatPrice } from "@/lib/utils";
 
 export function AccountOrderDetailPage() {
   const { lang, id } = useParams();
   const authClient = useAuthClient();
-  const { order, loading } = useOrder(id);
+  const { data: order, isLoading, isError, refetch } = useOrder(id);
+  const { t } = useTranslation();
   const prefix = `/${lang ?? "es"}`;
   const locale = lang === "en" ? "en-US" : "es-ES";
 
@@ -28,33 +32,40 @@ export function AccountOrderDetailPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Order detail</CardTitle>
+        <CardTitle>{t("account.orderDetailTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <Button asChild size="sm" variant="outline">
-          <Link to={`${prefix}/account/orders`}>Back to orders</Link>
+          <Link to={`${prefix}/account/orders`}>{t("account.backToOrders")}</Link>
         </Button>
 
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Loading order...</p>
+        {isLoading ? (
+          <Skeleton className="h-40 w-full" />
+        ) : isError ? (
+          <ErrorState
+            title={t("errors.generic")}
+            description={t("account.loadingOrder")}
+            actionLabel={t("errors.retry")}
+            onAction={() => void refetch()}
+          />
         ) : !order ? (
-          <p className="text-sm text-muted-foreground">Order not found.</p>
+          <p className="text-sm text-muted-foreground">{t("account.orderNotFound")}</p>
         ) : (
           <>
             <div className="grid gap-2 text-sm">
-              <p>Order ID: {order.id}</p>
-              <p>Status: {order.status}</p>
-              <p>Total: {formatPrice(order.totalCents, order.currency, locale)}</p>
-              <p>Created: {new Date(order.createdAt).toLocaleString(locale)}</p>
+              <p>{t("account.detail.orderId")}: {order.id}</p>
+              <p>{t("account.detail.status")}: {order.status}</p>
+              <p>{t("account.detail.total")}: {formatPrice(order.totalCents, order.currency, locale)}</p>
+              <p>{t("account.detail.created")}: {new Date(order.createdAt).toLocaleString(locale)}</p>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Unit price</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead>{t("account.detail.item")}</TableHead>
+                  <TableHead>{t("account.detail.quantity")}</TableHead>
+                  <TableHead>{t("account.detail.unitPrice")}</TableHead>
+                  <TableHead>{t("account.columns.total")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

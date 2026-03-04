@@ -1,37 +1,202 @@
 {
   "brand": "Sol iO",
   "nav": {
+    "label": "Navegación principal",
     "home": "Inicio",
     "products": "Productos",
     "cart": "Carrito",
     "account": "Cuenta",
     "admin": "Admin"
   },
+  "language": {
+    "label": "Idioma",
+    "switcher": "Selector de idioma",
+    "spanish": "Cambiar a español",
+    "english": "Cambiar a inglés"
+  },
   "home": {
-    "title": "Tienda base para e-commerce",
-    "subtitle": "Arquitectura modular con frontend y backend desacoplados."
+    "title": "Storefront de e-commerce",
+    "subtitle": "Frontend por features con checkout y panel admin."
   },
   "products": {
     "title": "Productos",
     "view": "Ver detalle",
-    "add": "Agregar al carrito"
+    "add": "Agregar al carrito",
+    "noImage": "Sin imagen disponible",
+    "addAria": "Agregar {{name}} al carrito"
   },
   "cart": {
     "title": "Tu carrito",
-    "empty": "Tu carrito está vacío"
+    "empty": "Tu carrito está vacío",
+    "quantity": "Cantidad",
+    "quantityAria": "Cantidad para {{name}}",
+    "removeAria": "Quitar {{name}} del carrito",
+    "remove": "Quitar",
+    "subtotal": "Subtotal",
+    "checkout": "Pagar",
+    "redirecting": "Redirigiendo..."
   },
   "account": {
     "title": "Cuenta",
     "signin": "Iniciar sesión",
-    "signout": "Cerrar sesión"
+    "signout": "Cerrar sesión",
+    "statusAuthenticated": "Autenticado",
+    "statusGuest": "Invitado",
+    "orders": "Historial de pedidos",
+    "orderHistoryTitle": "Historial de pedidos",
+    "orderDetailTitle": "Detalle del pedido",
+    "loadingOrders": "Cargando pedidos...",
+    "loadingOrder": "Cargando pedido...",
+    "noOrders": "Aún no hay pedidos.",
+    "orderNotFound": "Pedido no encontrado.",
+    "backToOrders": "Volver a pedidos",
+    "columns": {
+      "order": "Pedido",
+      "status": "Estado",
+      "total": "Total",
+      "date": "Fecha",
+      "action": "Acción"
+    },
+    "detail": {
+      "orderId": "ID de pedido",
+      "status": "Estado",
+      "total": "Total",
+      "created": "Creado",
+      "item": "Artículo",
+      "quantity": "Cantidad",
+      "unitPrice": "Precio unitario"
+    }
+  },
+  "checkout": {
+    "successTitle": "Pago recibido",
+    "successDescription": "Tu pago fue exitoso. La confirmación del pedido se procesa en el servidor.",
+    "orderHistory": "Ir a historial de pedidos",
+    "backHome": "Volver al inicio",
+    "cancelTitle": "Checkout cancelado",
+    "cancelDescription": "Tu pago fue cancelado. Tu carrito sigue disponible.",
+    "returnCart": "Volver al carrito",
+    "continueShopping": "Seguir comprando"
   },
   "admin": {
-    "title": "Panel de administración",
-    "placeholder": "Se implementará en la Fase 2"
+    "nav": {
+      "dashboard": "Panel",
+      "products": "Productos",
+      "categories": "Categorías",
+      "orders": "Pedidos"
+    },
+    "dashboard": {
+      "productsDescription": "Crea, edita y elimina productos del catálogo.",
+      "productsLink": "Abrir admin de productos",
+      "categoriesDescription": "Gestiona categorías para organizar el catálogo.",
+      "categoriesLink": "Abrir admin de categorías",
+      "ordersDescription": "Supervisa estado de pagos y metadatos de Stripe.",
+      "ordersLink": "Abrir admin de pedidos"
+    },
+    "products": {
+      "title": "Admin Productos",
+      "new": "Nuevo producto",
+      "create": "Crear producto",
+      "edit": "Editar producto",
+      "deleteTitle": "Eliminar producto",
+      "deleteDescription": "Esta acción no se puede deshacer.",
+      "columns": {
+        "name": "Nombre",
+        "category": "Categoría",
+        "price": "Precio",
+        "currency": "Moneda",
+        "actions": "Acciones"
+      },
+      "form": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "priceCents": "Precio (céntimos)",
+        "currency": "Moneda",
+        "imageUrl": "URL de imagen (opcional)",
+        "category": "Categoría",
+        "selectCategory": "Selecciona categoría"
+      }
+    },
+    "categories": {
+      "title": "Admin Categorías",
+      "new": "Nueva categoría",
+      "create": "Crear categoría",
+      "edit": "Editar categoría",
+      "deleteTitle": "Eliminar categoría",
+      "deleteDescription": "Esta acción no se puede deshacer. No se pueden eliminar categorías con productos asociados.",
+      "columns": {
+        "name": "Nombre",
+        "updated": "Actualizado",
+        "actions": "Acciones"
+      },
+      "form": {
+        "name": "Nombre"
+      }
+    },
+    "orders": {
+      "title": "Admin Pedidos",
+      "back": "Volver a pedidos",
+      "detailTitle": "Pedido {{id}}",
+      "columns": {
+        "order": "Pedido",
+        "user": "Usuario",
+        "status": "Estado",
+        "total": "Total",
+        "paidAt": "Pagado en",
+        "action": "Acción"
+      },
+      "status": "Estado",
+      "total": "Total",
+      "session": "Sesión Stripe",
+      "intent": "Payment Intent Stripe",
+      "customer": "Cliente Stripe",
+      "paidAt": "Pagado en",
+      "item": "Artículo",
+      "quantity": "Cantidad",
+      "unit": "Unidad"
+    },
+    "validation": {
+      "requiredFields": "Completa todos los campos requeridos",
+      "nameRequired": "El nombre es obligatorio"
+    }
   },
-  "language": "Idioma",
+  "common": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "save": "Guardar cambios",
+    "create": "Crear",
+    "detail": "Detalle"
+  },
+  "errors": {
+    "retry": "Reintentar",
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "notFound": "Recurso no encontrado.",
+    "productsTitle": "No se pudieron cargar los productos",
+    "productsDescription": "Actualiza la página e inténtalo de nuevo.",
+    "productTitle": "No se pudo cargar el producto",
+    "productDescription": "Actualiza la página e inténtalo de nuevo.",
+    "cartTitle": "No se pudo cargar el carrito",
+    "cartDescription": "Actualiza la página e inténtalo de nuevo.",
+    "adminProductsTitle": "No se pudieron cargar los productos",
+    "adminProductsDescription": "Reintenta en unos segundos.",
+    "adminCategoriesTitle": "No se pudieron cargar las categorías",
+    "adminCategoriesDescription": "Reintenta en unos segundos.",
+    "adminOrdersTitle": "No se pudieron cargar los pedidos",
+    "adminOrdersDescription": "Reintenta en unos segundos.",
+    "adminOrderTitle": "No se pudo cargar el pedido",
+    "adminOrderDescription": "Reintenta en unos segundos."
+  },
   "toast": {
     "added": "Producto agregado",
-    "removed": "Producto eliminado"
+    "removed": "Producto eliminado",
+    "cartError": "No se pudo actualizar el carrito",
+    "checkoutError": "No se pudo iniciar checkout",
+    "orderCreated": "Pedido creado",
+    "productCreated": "Producto creado",
+    "productUpdated": "Producto actualizado",
+    "productDeleted": "Producto eliminado",
+    "categoryCreated": "Categoría creada",
+    "categoryUpdated": "Categoría actualizada",
+    "categoryDeleted": "Categoría eliminada"
   }
 }
