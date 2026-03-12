@@ -1,10 +1,12 @@
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { ErrorState } from "@/components/ErrorState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
@@ -14,12 +16,54 @@ import { formatPrice } from "@/lib/utils";
 
 export function ProductsPage() {
   const { t, i18n } = useTranslation();
-  const { data: products = [], isLoading, isError, refetch } = useProducts();
+  const [searchParams, setSearchParams] = useSearchParams();
   const addToCart = useAddToCart();
   const authClient = useAuthClient();
   const { notify } = useToast();
   const { lang } = useParams();
   const locale = i18n.language === "en" ? "en-US" : "es-ES";
+  const [searchDraft, setSearchDraft] = useState(searchParams.get("search") ?? "");
+
+  useEffect(() => {
+    setSearchDraft(searchParams.get("search") ?? "");
+  }, [searchParams]);
+
+  const parsedPage = Number(searchParams.get("page") ?? "1");
+
+  const query = useMemo(
+    () => ({
+      search: searchParams.get("search") ?? undefined,
+      categoryId: searchParams.get("categoryId") ?? undefined,
+      sort: (searchParams.get("sort") as "newest" | "price_asc" | "price_desc" | "name_asc" | null) ?? "newest",
+      page: Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+      pageSize: 9,
+    }),
+    [parsedPage, searchParams],
+  );
+
+  const { data, isLoading, isError, refetch } = useProducts(query);
+  const products = data?.items ?? [];
+  const categories = data?.categories ?? [];
+  const currentPage = data?.page ?? query.page;
+  const totalPages = data?.totalPages ?? 1;
+
+  function updateSearchParams(updates: Record<string, string | null>, resetPage = false) {
+    const next = new URLSearchParams(searchParams);
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (!value) {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+    }
+
+    if (resetPage) {
+      next.set("page", "1");
+    }
+
+    setSearchParams(next);
+  }
 
   async function onAddToCart(product: {
     id: string;
@@ -62,7 +106,69 @@ export function ProductsPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("products.title")}</h1>
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("products.title")}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t("products.results", { count: data?.totalItems ?? 0 })}
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <form
+            className="md:col-span-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              updateSearchParams({ search: searchDraft.trim() || null }, true);
+            }}
+          >
+            <Input
+              value={searchDraft}
+              onChange={(event) => setSearchDraft(event.target.value)}
+              placeholder={t("products.searchPlaceholder")}
+              aria-label={t("products.searchPlaceholder")}
+            />
+          </form>
+          <select
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={query.categoryId ?? ""}
+            onChange={(event) => updateSearchParams({ categoryId: event.target.value || null }, true)}
+          >
+            <option value="">{t("products.allCategories")}</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={query.sort}
+            onChange={(event) => updateSearchParams({ sort: event.target.value }, true)}
+          >
+            <option value="newest">{t("products.sort.newest")}</option>
+            <option value="price_asc">{t("products.sort.priceAsc")}</option>
+            <option value="price_desc">{t("products.sort.priceDesc")}</option>
+            <option value="name_asc">{t("products.sort.nameAsc")}</option>
+          </select>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setSearchDraft("");
+              setSearchParams(new URLSearchParams());
+            }}
+          >
+            {t("products.clearFilters")}
+          </Button>
+        </div>
+      </div>
+      {products.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">{t("products.noResults")}</p>
+          </CardContent>
+        </Card>
+      ) : null}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {products.map((product) => (
           <Card key={product.id} className="overflow-hidden">
@@ -95,6 +201,25 @@ export function ProductsPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <Button
+          variant="outline"
+          disabled={currentPage <= 1}
+          onClick={() => updateSearchParams({ page: String(currentPage - 1) })}
+        >
+          {t("products.pagination.previous")}
+        </Button>
+        <p className="text-sm text-muted-foreground">
+          {t("products.pagination.page", { page: currentPage, totalPages })}
+        </p>
+        <Button
+          variant="outline"
+          disabled={currentPage >= totalPages}
+          onClick={() => updateSearchParams({ page: String(currentPage + 1) })}
+        >
+          {t("products.pagination.next")}
+        </Button>
       </div>
     </section>
   );

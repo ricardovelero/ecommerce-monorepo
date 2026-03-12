@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,10 +32,13 @@ const EMPTY_FORM: AdminProductInput = {
   name: "",
   description: "",
   priceCents: 0,
+  stock: 0,
   currency: "EUR",
   imageUrl: "",
   categoryId: "",
 };
+
+const LOW_STOCK_THRESHOLD = 10;
 
 export function AdminProductsPage() {
   const { t } = useTranslation();
@@ -56,6 +60,14 @@ export function AdminProductsPage() {
   const isSubmitting = createProduct.isPending || updateProduct.isPending;
 
   const categoryOptions = useMemo(() => categories, [categories]);
+  const inventorySummary = useMemo(
+    () => ({
+      totalUnits: products.reduce((sum, product) => sum + product.stock, 0),
+      lowStock: products.filter((product) => product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD).length,
+      outOfStock: products.filter((product) => product.stock === 0).length,
+    }),
+    [products],
+  );
 
   function openCreateDialog() {
     setEditingId(null);
@@ -74,6 +86,7 @@ export function AdminProductsPage() {
       name: product.name,
       description: product.description,
       priceCents: product.priceCents,
+      stock: product.stock,
       currency: product.currency,
       imageUrl: product.imageUrl ?? "",
       categoryId: product.categoryId,
@@ -82,7 +95,13 @@ export function AdminProductsPage() {
   }
 
   function submitForm() {
-    if (!form.name.trim() || !form.description.trim() || !form.categoryId.trim() || form.priceCents < 1) {
+    if (
+      !form.name.trim() ||
+      !form.description.trim() ||
+      !form.categoryId.trim() ||
+      form.priceCents < 1 ||
+      (form.stock ?? 0) < 0
+    ) {
       setError(t("admin.validation.requiredFields"));
       return;
     }
@@ -91,6 +110,7 @@ export function AdminProductsPage() {
       ...form,
       name: form.name.trim(),
       description: form.description.trim(),
+      stock: form.stock ?? 0,
       currency: form.currency.trim().toUpperCase(),
       imageUrl: form.imageUrl?.trim() ? form.imageUrl.trim() : null,
     };
@@ -141,6 +161,12 @@ export function AdminProductsPage() {
         <Button onClick={openCreateDialog}>{t("admin.products.new")}</Button>
       </div>
 
+      <div className="grid gap-3 md:grid-cols-3">
+        <InventoryCard label={t("admin.products.inventory.totalUnits")} value={inventorySummary.totalUnits} />
+        <InventoryCard label={t("admin.products.inventory.lowStock")} value={inventorySummary.lowStock} />
+        <InventoryCard label={t("admin.products.inventory.outOfStock")} value={inventorySummary.outOfStock} />
+      </div>
+
       {isLoading ? (
         <AdminTableSkeleton />
       ) : isError ? (
@@ -157,6 +183,8 @@ export function AdminProductsPage() {
               <TableHead>{t("admin.products.columns.name")}</TableHead>
               <TableHead>{t("admin.products.columns.category")}</TableHead>
               <TableHead>{t("admin.products.columns.price")}</TableHead>
+              <TableHead>{t("admin.products.columns.stock")}</TableHead>
+              <TableHead>{t("admin.products.columns.inventory")}</TableHead>
               <TableHead>{t("admin.products.columns.currency")}</TableHead>
               <TableHead className="text-right">{t("admin.products.columns.actions")}</TableHead>
             </TableRow>
@@ -167,6 +195,10 @@ export function AdminProductsPage() {
                 <TableCell>{product.name}</TableCell>
                 <TableCell>{product.categoryName}</TableCell>
                 <TableCell>{(product.priceCents / 100).toFixed(2)}</TableCell>
+                <TableCell>{product.stock}</TableCell>
+                <TableCell>
+                  <InventoryBadge stock={product.stock} t={t} />
+                </TableCell>
                 <TableCell>{product.currency}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -227,6 +259,24 @@ export function AdminProductsPage() {
                   }))
                 }
               />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="product-stock" className="text-sm font-medium">
+                {t("admin.products.form.stock")}
+              </label>
+              <Input
+                id="product-stock"
+                type="number"
+                min={0}
+                value={String(form.stock ?? 0)}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    stock: Number(event.target.value),
+                  }))
+                }
+              />
+              <p className="text-xs text-muted-foreground">{t("admin.products.form.stockHint")}</p>
             </div>
             <div className="space-y-1">
               <label htmlFor="product-currency" className="text-sm font-medium">
@@ -302,6 +352,33 @@ export function AdminProductsPage() {
       </AlertDialog>
     </section>
   );
+}
+
+function InventoryCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function InventoryBadge({
+  stock,
+  t,
+}: {
+  stock: number;
+  t: (key: string) => string;
+}) {
+  if (stock === 0) {
+    return <Badge className="bg-red-100 text-red-700">{t("admin.products.inventory.status.out")}</Badge>;
+  }
+
+  if (stock <= LOW_STOCK_THRESHOLD) {
+    return <Badge variant="accent">{t("admin.products.inventory.status.low")}</Badge>;
+  }
+
+  return <Badge>{t("admin.products.inventory.status.healthy")}</Badge>;
 }
 
 function AdminTableSkeleton() {

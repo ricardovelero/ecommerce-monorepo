@@ -12,6 +12,25 @@ export interface ProductDTO {
   categoryName: string;
 }
 
+export type ProductSort = "newest" | "price_asc" | "price_desc" | "name_asc";
+
+export interface ProductListQueryDTO {
+  search?: string;
+  categoryId?: string;
+  sort?: ProductSort;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ProductListResponseDTO {
+  items: ProductDTO[];
+  categories: CategoryDTO[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 export interface CategoryDTO {
   id: string;
   name: string;

@@ -23,7 +23,23 @@
     "view": "Ver detalle",
     "add": "Agregar al carrito",
     "noImage": "Sin imagen disponible",
-    "addAria": "Agregar {{name}} al carrito"
+    "addAria": "Agregar {{name}} al carrito",
+    "results": "{{count}} productos encontrados",
+    "searchPlaceholder": "Buscar productos",
+    "allCategories": "Todas las categorías",
+    "clearFilters": "Limpiar filtros",
+    "noResults": "No hay productos que coincidan con los filtros actuales.",
+    "sort": {
+      "newest": "Más recientes",
+      "priceAsc": "Precio: menor a mayor",
+      "priceDesc": "Precio: mayor a menor",
+      "nameAsc": "Nombre: A a Z"
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {{page}} de {{totalPages}}"
+    }
   },
   "cart": {
     "title": "Tu carrito",
@@ -99,10 +115,22 @@
       "edit": "Editar producto",
       "deleteTitle": "Eliminar producto",
       "deleteDescription": "Esta acción no se puede deshacer.",
+      "inventory": {
+        "totalUnits": "Unidades en stock",
+        "lowStock": "Productos con stock bajo",
+        "outOfStock": "Productos sin stock",
+        "status": {
+          "healthy": "Correcto",
+          "low": "Bajo",
+          "out": "Sin stock"
+        }
+      },
       "columns": {
         "name": "Nombre",
         "category": "Categoría",
         "price": "Precio",
+        "stock": "Stock",
+        "inventory": "Inventario",
         "currency": "Moneda",
         "actions": "Acciones"
       },
@@ -110,6 +138,8 @@
         "name": "Nombre",
         "description": "Descripción",
         "priceCents": "Precio (céntimos)",
+        "stock": "Unidades en stock",
+        "stockHint": "Usa 0 para marcar el producto sin stock.",
         "currency": "Moneda",
         "imageUrl": "URL de imagen (opcional)",
         "category": "Categoría",

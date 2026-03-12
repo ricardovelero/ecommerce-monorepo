@@ -23,7 +23,23 @@
     "view": "View details",
     "add": "Add to cart",
     "noImage": "No image available",
-    "addAria": "Add {{name}} to cart"
+    "addAria": "Add {{name}} to cart",
+    "results": "{{count}} products found",
+    "searchPlaceholder": "Search products",
+    "allCategories": "All categories",
+    "clearFilters": "Clear filters",
+    "noResults": "No products match the current filters.",
+    "sort": {
+      "newest": "Newest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low",
+      "nameAsc": "Name: A to Z"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}} of {{totalPages}}"
+    }
   },
   "cart": {
     "title": "Your cart",
@@ -99,10 +115,22 @@
       "edit": "Edit product",
       "deleteTitle": "Delete product",
       "deleteDescription": "This action cannot be undone.",
+      "inventory": {
+        "totalUnits": "Units in stock",
+        "lowStock": "Low-stock products",
+        "outOfStock": "Out-of-stock products",
+        "status": {
+          "healthy": "Healthy",
+          "low": "Low",
+          "out": "Out"
+        }
+      },
       "columns": {
         "name": "Name",
         "category": "Category",
         "price": "Price",
+        "stock": "Stock",
+        "inventory": "Inventory",
         "currency": "Currency",
         "actions": "Actions"
       },
@@ -110,6 +138,8 @@
         "name": "Name",
         "description": "Description",
         "priceCents": "Price (cents)",
+        "stock": "Stock units",
+        "stockHint": "Use 0 to mark the product as out of stock.",
         "currency": "Currency",
         "imageUrl": "Image URL (optional)",
         "category": "Category",
