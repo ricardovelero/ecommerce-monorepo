@@ -97,7 +97,6 @@ export function CartPage() {
                       updateQuantity.mutate(
                         {
                           itemId: item.id,
-                          productId: item.productId,
                           nextQuantity,
                         },
                         {

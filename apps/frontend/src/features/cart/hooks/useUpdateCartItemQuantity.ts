@@ -6,7 +6,6 @@ import { useHttpClient } from "@/features/shared/api/useHttpClient";
 
 interface UpdateQuantityInput {
   itemId: string;
-  productId: string;
   nextQuantity: number;
 }
 
@@ -19,29 +18,12 @@ export function useUpdateCartItemQuantity() {
   const queryClient = useQueryClient();
 
   return useMutation<CartDTO, Error, UpdateQuantityInput, UpdateContext>({
-    mutationFn: async ({ itemId, productId, nextQuantity }) => {
-      const currentCart = queryClient.getQueryData<CartDTO>(cartQueryKey) ?? emptyCart;
-      const currentItem = currentCart.items.find((item) => item.id === itemId);
-      const currentQuantity = currentItem?.quantity ?? 0;
-
+    mutationFn: async ({ itemId, nextQuantity }) => {
       if (nextQuantity <= 0) {
         return http.delete<CartDTO>(`/api/cart/items/${itemId}`);
       }
 
-      if (nextQuantity > currentQuantity) {
-        return http.post<CartDTO>("/api/cart/items", {
-          productId,
-          quantity: nextQuantity - currentQuantity,
-        });
-      }
-
-      if (nextQuantity === currentQuantity) {
-        return currentCart;
-      }
-
-      await http.delete<CartDTO>(`/api/cart/items/${itemId}`);
-      return http.post<CartDTO>("/api/cart/items", {
-        productId,
+      return http.patch<CartDTO>(`/api/cart/items/${itemId}`, {
         quantity: nextQuantity,
       });
     },
@@ -73,6 +55,9 @@ export function useUpdateCartItemQuantity() {
     },
     onSuccess: (cart) => {
       queryClient.setQueryData(cartQueryKey, cart);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: cartQueryKey });
     },
   });
 }

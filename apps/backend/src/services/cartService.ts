@@ -150,3 +150,50 @@ export async function removeCartItem(input: { userId: string; itemId: string }):
 
   return toCartDTO(updated);
 }
+
+export async function updateCartItemQuantity(input: {
+  userId: string;
+  itemId: string;
+  quantity: number;
+}): Promise<CartDTO> {
+  const cart = await getOrCreateOpenCart(input.userId);
+
+  const item = await prisma.cartItem.findUnique({
+    where: { id: input.itemId },
+    include: { product: true },
+  });
+
+  if (!item || item.cartId !== cart.id) {
+    throw new HttpError(404, "Cart item not found");
+  }
+
+  if (input.quantity === 0) {
+    return removeCartItem({ userId: input.userId, itemId: input.itemId });
+  }
+
+  if (input.quantity > item.product.stock) {
+    throw new HttpError(409, "Requested quantity exceeds available stock");
+  }
+
+  await prisma.cartItem.update({
+    where: { id: input.itemId },
+    data: {
+      quantity: input.quantity,
+    },
+  });
+
+  const updated = await prisma.cart.findUnique({
+    where: { id: cart.id },
+    include: {
+      items: {
+        include: { product: true },
+      },
+    },
+  });
+
+  if (!updated) {
+    throw new HttpError(500, "Cart not found after quantity update");
+  }
+
+  return toCartDTO(updated);
+}

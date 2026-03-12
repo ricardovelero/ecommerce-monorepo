@@ -1,7 +1,7 @@
 import type { CartDTO } from "@ecommerce/shared-types";
 import type { Request, Response } from "express";
 
-import { addCartItem, getCart, removeCartItem } from "@/services/cartService";
+import { addCartItem, getCart, removeCartItem, updateCartItemQuantity } from "@/services/cartService";
 
 function emptyCart(): CartDTO {
   return { id: "dev-empty-cart", status: "OPEN", items: [] };
@@ -30,6 +30,15 @@ export async function removeCartItemController(req: Request, res: Response): Pro
   const cart = await removeCartItem({
     userId: req.user!.id,
     itemId: req.params.id,
+  });
+  res.json(cart);
+}
+
+export async function updateCartItemQuantityController(req: Request, res: Response): Promise<void> {
+  const cart = await updateCartItemQuantity({
+    userId: req.user!.id,
+    itemId: req.params.id,
+    quantity: req.body.quantity,
   });
   res.json(cart);
 }
