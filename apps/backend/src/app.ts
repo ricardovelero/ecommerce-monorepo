@@ -4,6 +4,7 @@ import cors from "cors";
 import express from "express";
 import pinoHttp from "pino-http";
 
+import { createCorsOptions, parseAllowedOrigins } from "@/config/cors";
 import { env } from "@/config/env";
 import { logger } from "@/lib/logger";
 import { errorHandler } from "@/middleware/errorHandler";
@@ -18,8 +19,9 @@ import { productRoutes } from "@/routes/productRoutes";
 import { stripeWebhookRoutes } from "@/routes/stripeWebhookRoutes";
 
 const app: express.Express = express();
+const allowedOrigins = parseAllowedOrigins(env.CORS_ALLOWED_ORIGINS, env.APP_URL);
 
-app.use(cors());
+app.use(cors(createCorsOptions(allowedOrigins)));
 app.use(requestId);
 app.use(
   pinoHttp({

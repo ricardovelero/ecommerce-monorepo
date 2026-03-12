@@ -9,6 +9,7 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/worker.js",
     "lint": "eslint src --ext .ts",
+    "test": "node --import tsx --test src/**/*.test.ts",
     "postinstall": "prisma generate --schema ../backend/prisma/schema.prisma"
   },
   "dependencies": {

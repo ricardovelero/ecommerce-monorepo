@@ -2,7 +2,7 @@
   "name": "ecommerce-monorepo",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.6.0",
+  "packageManager": "pnpm@10.30.3",
   "engines": {
     "node": ">=20"
   },
@@ -10,6 +10,7 @@
     "dev": "pnpm --filter @ecommerce/queue build && pnpm -r --parallel --filter @ecommerce/backend --filter @ecommerce/frontend --filter @ecommerce/worker --filter @ecommerce/queue dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
+    "test": "pnpm --filter @ecommerce/backend test && pnpm --filter @ecommerce/worker test",
     "format": "prettier --write .",
     "db:up": "docker compose up -d postgres redis",
     "db:down": "docker compose down",

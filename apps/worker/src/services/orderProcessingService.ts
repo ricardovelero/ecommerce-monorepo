@@ -4,6 +4,9 @@ import Stripe from "stripe";
 import { prisma } from "@/db/prisma";
 import { logger } from "@/lib/logger";
 import { sendOrderConfirmationEmail } from "@/services/emailService";
+import { runAfterCommit } from "@/services/postCommit";
+
+type OrderConfirmationEmailInput = Parameters<typeof sendOrderConfirmationEmail>[0];
 
 function normalizeEmail(value: string | null | undefined): string | null {
   if (typeof value !== "string") {
@@ -116,117 +119,164 @@ export async function processCheckoutSessionCompleted(input: {
   stripeSessionId: string;
   stripeEventId: string;
 }): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    const session = await input.stripe.checkout.sessions.retrieve(input.stripeSessionId, {
-      expand: ["customer"],
-    });
-
-    const cartId = session.metadata?.cartId ?? session.client_reference_id;
-    const userId = session.metadata?.userId;
-
-    if (!cartId || !userId) {
-      logger.warn({ stripeEventId: input.stripeEventId, sessionId: session.id }, "Stripe session missing required metadata");
-      return;
-    }
-
-    const stripePaymentIntentId = toStringOrNull(session.payment_intent as string | Stripe.PaymentIntent | null);
-    const stripeCustomerId = typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
-    const checkoutEmail = normalizeEmail(session.customer_details?.email);
-
-    const existingBySession = await tx.order.findUnique({
-      where: { stripeCheckoutSessionId: session.id },
-      select: { id: true },
-    });
-
-    if (existingBySession) {
-      return;
-    }
-
-    if (stripePaymentIntentId) {
-      const existingByPaymentIntent = await tx.order.findUnique({
-        where: { stripePaymentIntentId },
-        select: { id: true },
-      });
-
-      if (existingByPaymentIntent) {
-        return;
-      }
-    }
-
-    const cart = await tx.cart.findUnique({
-      where: { id: cartId },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
-
-    if (!cart) {
-      logger.warn({ stripeEventId: input.stripeEventId, sessionId: session.id, cartId }, "Stripe webhook cart not found");
-      return;
-    }
-
-    if (cart.userId !== userId) {
-      logger.warn(
-        { stripeEventId: input.stripeEventId, sessionId: session.id, cartId, cartUserId: cart.userId, metadataUserId: userId },
-        "Stripe webhook cart user mismatch",
-      );
-      return;
-    }
-
-    if (cart.status !== CartStatus.OPEN) {
-      return;
-    }
-
-    if (cart.items.length === 0) {
-      logger.warn({ stripeEventId: input.stripeEventId, sessionId: session.id, cartId }, "Stripe webhook cart is empty");
-      return;
-    }
-
-    if (checkoutEmail) {
-      await tx.user.updateMany({
-        where: {
-          id: userId,
-          email: null,
-        },
-        data: {
-          email: checkoutEmail,
-        },
-      });
-    }
-
-    const order = await createOrderFromCart({
-      tx,
-      cart,
-      stripeCheckoutSessionId: session.id,
-      stripePaymentIntentId,
-      stripeCustomerId,
-    });
-
-    if (checkoutEmail) {
-      await sendOrderConfirmationEmail({
-        to: checkoutEmail,
-        orderId: order.orderId,
-        totalCents: order.totalCents,
-        currency: order.currency,
-      });
-    }
-  });
+  return orderProcessingService.processCheckoutSessionCompleted(input);
 }
 
 export async function processPaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-  await prisma.order.updateMany({
-    where: {
-      stripePaymentIntentId: paymentIntent.id,
-      status: {
-        not: OrderStatus.PAID,
-      },
-    },
-    data: {
-      status: OrderStatus.FAILED,
-    },
-  });
+  return orderProcessingService.processPaymentIntentFailed(paymentIntent);
 }
+
+export function createOrderProcessingService(deps: {
+  prismaClient: Pick<typeof prisma, "$transaction" | "order">;
+  loggerInstance: Pick<typeof logger, "warn">;
+  sendOrderConfirmationEmailFn: typeof sendOrderConfirmationEmail;
+} = {
+  prismaClient: prisma,
+  loggerInstance: logger,
+  sendOrderConfirmationEmailFn: sendOrderConfirmationEmail,
+}) {
+  return {
+    async processCheckoutSessionCompleted(input: {
+      stripe: Stripe;
+      stripeSessionId: string;
+      stripeEventId: string;
+    }): Promise<void> {
+      await runAfterCommit(
+        () =>
+          deps.prismaClient.$transaction(async (tx) => {
+            const session = await input.stripe.checkout.sessions.retrieve(input.stripeSessionId, {
+              expand: ["customer"],
+            });
+
+            const cartId = session.metadata?.cartId ?? session.client_reference_id;
+            const userId = session.metadata?.userId;
+
+            if (!cartId || !userId) {
+              deps.loggerInstance.warn(
+                { stripeEventId: input.stripeEventId, sessionId: session.id },
+                "Stripe session missing required metadata",
+              );
+              return null;
+            }
+
+            const stripePaymentIntentId = toStringOrNull(session.payment_intent as string | Stripe.PaymentIntent | null);
+            const stripeCustomerId = typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
+            const checkoutEmail = normalizeEmail(session.customer_details?.email);
+
+            const existingBySession = await tx.order.findUnique({
+              where: { stripeCheckoutSessionId: session.id },
+              select: { id: true },
+            });
+
+            if (existingBySession) {
+              return null;
+            }
+
+            if (stripePaymentIntentId) {
+              const existingByPaymentIntent = await tx.order.findUnique({
+                where: { stripePaymentIntentId },
+                select: { id: true },
+              });
+
+              if (existingByPaymentIntent) {
+                return null;
+              }
+            }
+
+            const cart = await tx.cart.findUnique({
+              where: { id: cartId },
+              include: {
+                items: {
+                  include: {
+                    product: true,
+                  },
+                },
+              },
+            });
+
+            if (!cart) {
+              deps.loggerInstance.warn(
+                { stripeEventId: input.stripeEventId, sessionId: session.id, cartId },
+                "Stripe webhook cart not found",
+              );
+              return null;
+            }
+
+            if (cart.userId !== userId) {
+              deps.loggerInstance.warn(
+                {
+                  stripeEventId: input.stripeEventId,
+                  sessionId: session.id,
+                  cartId,
+                  cartUserId: cart.userId,
+                  metadataUserId: userId,
+                },
+                "Stripe webhook cart user mismatch",
+              );
+              return null;
+            }
+
+            if (cart.status !== CartStatus.OPEN) {
+              return null;
+            }
+
+            if (cart.items.length === 0) {
+              deps.loggerInstance.warn(
+                { stripeEventId: input.stripeEventId, sessionId: session.id, cartId },
+                "Stripe webhook cart is empty",
+              );
+              return null;
+            }
+
+            if (checkoutEmail) {
+              await tx.user.updateMany({
+                where: {
+                  id: userId,
+                  email: null,
+                },
+                data: {
+                  email: checkoutEmail,
+                },
+              });
+            }
+
+            const order = await createOrderFromCart({
+              tx,
+              cart,
+              stripeCheckoutSessionId: session.id,
+              stripePaymentIntentId,
+              stripeCustomerId,
+            });
+
+            if (!checkoutEmail) {
+              return null;
+            }
+
+            return {
+              to: checkoutEmail,
+              orderId: order.orderId,
+              totalCents: order.totalCents,
+              currency: order.currency,
+            } satisfies OrderConfirmationEmailInput;
+          }),
+        deps.sendOrderConfirmationEmailFn,
+      );
+    },
+
+    async processPaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+      await deps.prismaClient.order.updateMany({
+        where: {
+          stripePaymentIntentId: paymentIntent.id,
+          status: {
+            not: OrderStatus.PAID,
+          },
+        },
+        data: {
+          status: OrderStatus.FAILED,
+        },
+      });
+    },
+  };
+}
+
+const orderProcessingService = createOrderProcessingService();

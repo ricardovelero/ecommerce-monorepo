@@ -1,7 +1,15 @@
+import path from "node:path";
+
 import dotenv from "dotenv";
 import { z } from "zod";
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(__dirname, "../../../.env"),
+});
+dotenv.config({
+  path: path.resolve(__dirname, "../../.env"),
+  override: true,
+});
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -23,6 +31,7 @@ const envSchema = z.object({
   POSTMARK_FROM_EMAIL: z.string().email().optional(),
   APP_URL: z.string().url().default("http://localhost:5173"),
   API_URL: z.string().url().default("http://localhost:4000"),
+  CORS_ALLOWED_ORIGINS: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
