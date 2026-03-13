@@ -31,6 +31,18 @@ export interface ProductListResponseDTO {
   totalPages: number;
 }
 
+export interface CheckoutSessionRequestDTO {
+  lang?: LanguageCode;
+  customerName: string;
+  phone?: string | null;
+  shippingAddressLine1: string;
+  shippingAddressLine2?: string | null;
+  shippingCity: string;
+  shippingPostalCode: string;
+  shippingCountry: string;
+  shippingNotes?: string | null;
+}
+
 export interface CategoryDTO {
   id: string;
   name: string;
@@ -58,6 +70,8 @@ export type OrderStatus =
   | "CANCELLED"
   | "REFUNDED";
 
+export type FulfillmentStatus = "UNFULFILLED" | "PROCESSING" | "SHIPPED" | "DELIVERED";
+
 export interface OrderItemDTO {
   id: string;
   productId: string;
@@ -70,9 +84,20 @@ export interface OrderDTO {
   id: string;
   userId: string;
   status: OrderStatus;
+  fulfillmentStatus: FulfillmentStatus;
   currency: string;
   subtotalCents: number;
   totalCents: number;
+  customerName?: string | null;
+  phone?: string | null;
+  shippingAddressLine1?: string | null;
+  shippingAddressLine2?: string | null;
+  shippingCity?: string | null;
+  shippingPostalCode?: string | null;
+  shippingCountry?: string | null;
+  shippingNotes?: string | null;
+  trackingNumber?: string | null;
+  fulfilledAt?: string | null;
   stripeCheckoutSessionId?: string | null;
   stripePaymentIntentId?: string | null;
   stripeCustomerId?: string | null;

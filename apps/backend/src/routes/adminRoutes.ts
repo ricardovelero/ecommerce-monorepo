@@ -10,6 +10,7 @@ import {
 import {
   getAdminOrderByIdController,
   getAdminOrdersController,
+  patchAdminOrderFulfillmentController,
 } from "@/controllers/adminOrderController";
 import {
   deleteAdminProductController,
@@ -23,6 +24,7 @@ import { verifyJwt } from "@/middleware/auth/verifyJwt";
 import { validate } from "@/middleware/validate";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { adminCategorySchema } from "@/validators/adminCategoryValidators";
+import { adminOrderFulfillmentSchema } from "@/validators/adminOrderValidators";
 import { adminProductSchema } from "@/validators/adminProductValidators";
 
 export const adminRoutes: Router = Router();
@@ -57,3 +59,8 @@ adminRoutes.delete("/admin/categories/:id", asyncHandler(deleteAdminCategoryCont
 
 adminRoutes.get("/admin/orders", asyncHandler(getAdminOrdersController));
 adminRoutes.get("/admin/orders/:id", asyncHandler(getAdminOrderByIdController));
+adminRoutes.patch(
+  "/admin/orders/:id/fulfillment",
+  validate(adminOrderFulfillmentSchema),
+  asyncHandler(patchAdminOrderFulfillmentController),
+);

@@ -58,6 +58,16 @@ async function createOrderFromCart(input: {
   stripeCheckoutSessionId: string;
   stripePaymentIntentId: string | null;
   stripeCustomerId: string | null;
+  fulfillment: {
+    customerName: string | null;
+    phone: string | null;
+    shippingAddressLine1: string | null;
+    shippingAddressLine2: string | null;
+    shippingCity: string | null;
+    shippingPostalCode: string | null;
+    shippingCountry: string | null;
+    shippingNotes: string | null;
+  };
 }): Promise<{ orderId: string; totalCents: number; currency: string }> {
   const subtotalCents = calculateSubtotal(input.cart.items);
   const currency = getSingleCurrency(input.cart.items);
@@ -92,6 +102,14 @@ async function createOrderFromCart(input: {
       stripeCheckoutSessionId: input.stripeCheckoutSessionId,
       stripePaymentIntentId: input.stripePaymentIntentId,
       stripeCustomerId: input.stripeCustomerId,
+      customerName: input.fulfillment.customerName,
+      phone: input.fulfillment.phone,
+      shippingAddressLine1: input.fulfillment.shippingAddressLine1,
+      shippingAddressLine2: input.fulfillment.shippingAddressLine2,
+      shippingCity: input.fulfillment.shippingCity,
+      shippingPostalCode: input.fulfillment.shippingPostalCode,
+      shippingCountry: input.fulfillment.shippingCountry,
+      shippingNotes: input.fulfillment.shippingNotes,
       paidAt: new Date(),
       createdById: input.cart.userId,
       updatedById: input.cart.userId,
@@ -162,6 +180,16 @@ export function createOrderProcessingService(deps: {
             const stripePaymentIntentId = toStringOrNull(session.payment_intent as string | Stripe.PaymentIntent | null);
             const stripeCustomerId = typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
             const checkoutEmail = normalizeEmail(session.customer_details?.email);
+            const fulfillment = {
+              customerName: session.metadata?.customerName ?? null,
+              phone: session.metadata?.phone ?? null,
+              shippingAddressLine1: session.metadata?.shippingAddressLine1 ?? null,
+              shippingAddressLine2: session.metadata?.shippingAddressLine2 ?? null,
+              shippingCity: session.metadata?.shippingCity ?? null,
+              shippingPostalCode: session.metadata?.shippingPostalCode ?? null,
+              shippingCountry: session.metadata?.shippingCountry ?? null,
+              shippingNotes: session.metadata?.shippingNotes ?? null,
+            };
 
             const existingBySession = await tx.order.findUnique({
               where: { stripeCheckoutSessionId: session.id },
@@ -246,6 +274,7 @@ export function createOrderProcessingService(deps: {
               stripeCheckoutSessionId: session.id,
               stripePaymentIntentId,
               stripeCustomerId,
+              fulfillment,
             });
 
             if (!checkoutEmail) {

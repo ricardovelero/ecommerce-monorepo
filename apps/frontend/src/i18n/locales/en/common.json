@@ -50,7 +50,19 @@
     "remove": "Remove",
     "subtotal": "Subtotal",
     "checkout": "Checkout",
-    "redirecting": "Redirecting..."
+    "redirecting": "Redirecting...",
+    "fulfillment": {
+      "title": "Shipping details",
+      "required": "Complete the required shipping fields before checkout.",
+      "customerName": "Customer name",
+      "phone": "Phone",
+      "addressLine1": "Address line 1",
+      "addressLine2": "Address line 2",
+      "city": "City",
+      "postalCode": "Postal code",
+      "country": "Country",
+      "notes": "Delivery notes"
+    }
   },
   "account": {
     "title": "Account",
@@ -76,8 +88,12 @@
     "detail": {
       "orderId": "Order ID",
       "status": "Status",
+      "fulfillmentStatus": "Fulfillment",
       "total": "Total",
       "created": "Created",
+      "shippingTitle": "Shipping details",
+      "trackingNumber": "Tracking number",
+      "fulfilledAt": "Delivered at",
       "item": "Item",
       "quantity": "Quantity",
       "unitPrice": "Unit price"
@@ -175,11 +191,15 @@
         "action": "Action"
       },
       "status": "Status",
+      "fulfillmentStatus": "Fulfillment",
       "total": "Total",
       "session": "Stripe session",
       "intent": "Stripe payment intent",
       "customer": "Stripe customer",
+      "trackingNumber": "Tracking number",
       "paidAt": "Paid at",
+      "fulfilledAt": "Delivered at",
+      "shippingTitle": "Shipping details",
       "item": "Item",
       "quantity": "Quantity",
       "unit": "Unit"
@@ -188,6 +208,12 @@
       "requiredFields": "Please complete all required fields",
       "nameRequired": "Name is required"
     }
+  },
+  "fulfillment": {
+    "unfulfilled": "Unfulfilled",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "delivered": "Delivered"
   },
   "common": {
     "edit": "Edit",

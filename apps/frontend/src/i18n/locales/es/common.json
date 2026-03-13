@@ -50,7 +50,19 @@
     "remove": "Quitar",
     "subtotal": "Subtotal",
     "checkout": "Pagar",
-    "redirecting": "Redirigiendo..."
+    "redirecting": "Redirigiendo...",
+    "fulfillment": {
+      "title": "Datos de envio",
+      "required": "Completa los campos obligatorios de envio antes de pagar.",
+      "customerName": "Nombre del cliente",
+      "phone": "Telefono",
+      "addressLine1": "Direccion linea 1",
+      "addressLine2": "Direccion linea 2",
+      "city": "Ciudad",
+      "postalCode": "Codigo postal",
+      "country": "Pais",
+      "notes": "Notas de entrega"
+    }
   },
   "account": {
     "title": "Cuenta",
@@ -76,8 +88,12 @@
     "detail": {
       "orderId": "ID de pedido",
       "status": "Estado",
+      "fulfillmentStatus": "Preparacion",
       "total": "Total",
       "created": "Creado",
+      "shippingTitle": "Datos de envio",
+      "trackingNumber": "Numero de seguimiento",
+      "fulfilledAt": "Entregado el",
       "item": "Artículo",
       "quantity": "Cantidad",
       "unitPrice": "Precio unitario"
@@ -175,11 +191,15 @@
         "action": "Acción"
       },
       "status": "Estado",
+      "fulfillmentStatus": "Preparacion",
       "total": "Total",
       "session": "Sesión Stripe",
       "intent": "Payment Intent Stripe",
       "customer": "Cliente Stripe",
+      "trackingNumber": "Numero de seguimiento",
       "paidAt": "Pagado en",
+      "fulfilledAt": "Entregado el",
+      "shippingTitle": "Datos de envio",
       "item": "Artículo",
       "quantity": "Cantidad",
       "unit": "Unidad"
@@ -188,6 +208,12 @@
       "requiredFields": "Completa todos los campos requeridos",
       "nameRequired": "El nombre es obligatorio"
     }
+  },
+  "fulfillment": {
+    "unfulfilled": "Sin preparar",
+    "processing": "En preparacion",
+    "shipped": "Enviado",
+    "delivered": "Entregado"
   },
   "common": {
     "edit": "Editar",

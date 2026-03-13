@@ -15,6 +15,17 @@ import { useRemoveCartItem } from "@/features/cart/hooks/useRemoveCartItem";
 import { useUpdateCartItemQuantity } from "@/features/cart/hooks/useUpdateCartItemQuantity";
 import { formatPrice } from "@/lib/utils";
 
+const EMPTY_CHECKOUT_FORM = {
+  customerName: "",
+  phone: "",
+  shippingAddressLine1: "",
+  shippingAddressLine2: "",
+  shippingCity: "",
+  shippingPostalCode: "",
+  shippingCountry: "",
+  shippingNotes: "",
+};
+
 export function CartPage() {
   const { t, i18n } = useTranslation();
   const { data: cart, isLoading, isError, refetch } = useCart();
@@ -25,6 +36,7 @@ export function CartPage() {
   const { notify } = useToast();
   const { lang } = useParams();
   const [redirecting, setRedirecting] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState(EMPTY_CHECKOUT_FORM);
 
   const locale = i18n.language === "en" ? "en-US" : "es-ES";
   const items = cart?.items ?? [];
@@ -36,8 +48,31 @@ export function CartPage() {
       return;
     }
 
+    if (
+      !checkoutForm.customerName.trim() ||
+      !checkoutForm.shippingAddressLine1.trim() ||
+      !checkoutForm.shippingCity.trim() ||
+      !checkoutForm.shippingPostalCode.trim() ||
+      !checkoutForm.shippingCountry.trim()
+    ) {
+      notify(t("cart.fulfillment.required"));
+      return;
+    }
+
     setRedirecting(true);
-    createCheckoutSession.mutate(lang === "en" ? "en" : "es", {
+    createCheckoutSession.mutate(
+      {
+        lang: lang === "en" ? "en" : "es",
+        customerName: checkoutForm.customerName.trim(),
+        phone: checkoutForm.phone.trim() || null,
+        shippingAddressLine1: checkoutForm.shippingAddressLine1.trim(),
+        shippingAddressLine2: checkoutForm.shippingAddressLine2.trim() || null,
+        shippingCity: checkoutForm.shippingCity.trim(),
+        shippingPostalCode: checkoutForm.shippingPostalCode.trim(),
+        shippingCountry: checkoutForm.shippingCountry.trim(),
+        shippingNotes: checkoutForm.shippingNotes.trim() || null,
+      },
+      {
       onSuccess: (response) => {
         window.location.href = response.url;
       },
@@ -127,6 +162,68 @@ export function CartPage() {
                 </div>
               </div>
             ))}
+            <div className="rounded-lg border p-4">
+              <h2 className="mb-3 font-medium">{t("cart.fulfillment.title")}</h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                <CheckoutField
+                  id="customer-name"
+                  label={t("cart.fulfillment.customerName")}
+                  value={checkoutForm.customerName}
+                  onChange={(value) => setCheckoutForm((prev) => ({ ...prev, customerName: value }))}
+                />
+                <CheckoutField
+                  id="customer-phone"
+                  label={t("cart.fulfillment.phone")}
+                  value={checkoutForm.phone}
+                  onChange={(value) => setCheckoutForm((prev) => ({ ...prev, phone: value }))}
+                />
+                <div className="md:col-span-2">
+                  <CheckoutField
+                    id="shipping-line1"
+                    label={t("cart.fulfillment.addressLine1")}
+                    value={checkoutForm.shippingAddressLine1}
+                    onChange={(value) => setCheckoutForm((prev) => ({ ...prev, shippingAddressLine1: value }))}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <CheckoutField
+                    id="shipping-line2"
+                    label={t("cart.fulfillment.addressLine2")}
+                    value={checkoutForm.shippingAddressLine2}
+                    onChange={(value) => setCheckoutForm((prev) => ({ ...prev, shippingAddressLine2: value }))}
+                  />
+                </div>
+                <CheckoutField
+                  id="shipping-city"
+                  label={t("cart.fulfillment.city")}
+                  value={checkoutForm.shippingCity}
+                  onChange={(value) => setCheckoutForm((prev) => ({ ...prev, shippingCity: value }))}
+                />
+                <CheckoutField
+                  id="shipping-postal-code"
+                  label={t("cart.fulfillment.postalCode")}
+                  value={checkoutForm.shippingPostalCode}
+                  onChange={(value) => setCheckoutForm((prev) => ({ ...prev, shippingPostalCode: value }))}
+                />
+                <CheckoutField
+                  id="shipping-country"
+                  label={t("cart.fulfillment.country")}
+                  value={checkoutForm.shippingCountry}
+                  onChange={(value) => setCheckoutForm((prev) => ({ ...prev, shippingCountry: value }))}
+                />
+                <div className="md:col-span-2">
+                  <label htmlFor="shipping-notes" className="text-sm text-muted-foreground">
+                    {t("cart.fulfillment.notes")}
+                  </label>
+                  <textarea
+                    id="shipping-notes"
+                    className="mt-1 min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={checkoutForm.shippingNotes}
+                    onChange={(event) => setCheckoutForm((prev) => ({ ...prev, shippingNotes: event.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
             <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-medium">{t("cart.subtotal")}</p>
@@ -140,6 +237,27 @@ export function CartPage() {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function CheckoutField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="text-sm text-muted-foreground">
+        {label}
+      </label>
+      <Input id={id} className="mt-1" value={value} onChange={(event) => onChange(event.target.value)} />
+    </div>
   );
 }
 

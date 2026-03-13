@@ -55,8 +55,22 @@ export function AccountOrderDetailPage() {
             <div className="grid gap-2 text-sm">
               <p>{t("account.detail.orderId")}: {order.id}</p>
               <p>{t("account.detail.status")}: {order.status}</p>
+              <p>{t("account.detail.fulfillmentStatus")}: {order.fulfillmentStatus}</p>
               <p>{t("account.detail.total")}: {formatPrice(order.totalCents, order.currency, locale)}</p>
               <p>{t("account.detail.created")}: {new Date(order.createdAt).toLocaleString(locale)}</p>
+              <p>{t("account.detail.trackingNumber")}: {order.trackingNumber ?? "-"}</p>
+              {order.fulfilledAt ? <p>{t("account.detail.fulfilledAt")}: {new Date(order.fulfilledAt).toLocaleString(locale)}</p> : null}
+            </div>
+
+            <div className="grid gap-2 rounded-lg border p-4 text-sm">
+              <p className="font-medium">{t("account.detail.shippingTitle")}</p>
+              <p>{order.customerName ?? "-"}</p>
+              <p>{order.phone ?? "-"}</p>
+              <p>{order.shippingAddressLine1 ?? "-"}</p>
+              {order.shippingAddressLine2 ? <p>{order.shippingAddressLine2}</p> : null}
+              <p>{[order.shippingPostalCode, order.shippingCity].filter(Boolean).join(" ") || "-"}</p>
+              <p>{order.shippingCountry ?? "-"}</p>
+              {order.shippingNotes ? <p>{order.shippingNotes}</p> : null}
             </div>
 
             <Table>

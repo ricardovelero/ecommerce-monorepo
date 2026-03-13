@@ -46,6 +46,14 @@ export async function createCheckoutSession(input: {
   userId: string;
   email?: string | null;
   lang?: string;
+  customerName: string;
+  phone?: string | null;
+  shippingAddressLine1: string;
+  shippingAddressLine2?: string | null;
+  shippingCity: string;
+  shippingPostalCode: string;
+  shippingCountry: string;
+  shippingNotes?: string | null;
 }): Promise<{ url: string }> {
   const cart = await prisma.cart.findFirst({
     where: {
@@ -75,6 +83,18 @@ export async function createCheckoutSession(input: {
   const lang = assertLanguage(input.lang);
 
   const stripe = getStripeClient();
+  const metadata = {
+    userId: input.userId,
+    cartId: cart.id,
+    customerName: input.customerName,
+    ...(input.phone ? { phone: input.phone } : {}),
+    shippingAddressLine1: input.shippingAddressLine1,
+    ...(input.shippingAddressLine2 ? { shippingAddressLine2: input.shippingAddressLine2 } : {}),
+    shippingCity: input.shippingCity,
+    shippingPostalCode: input.shippingPostalCode,
+    shippingCountry: input.shippingCountry,
+    ...(input.shippingNotes ? { shippingNotes: input.shippingNotes } : {}),
+  };
   const idempotencyKey = `checkout:${cart.id}:${subtotalCents}:${cart.items
     .map((item) => `${item.productId}:${item.quantity}`)
     .sort()
@@ -94,16 +114,10 @@ export async function createCheckoutSession(input: {
           },
         },
       })),
-      metadata: {
-        userId: input.userId,
-        cartId: cart.id,
-      },
+      metadata,
       client_reference_id: cart.id,
       payment_intent_data: {
-        metadata: {
-          userId: input.userId,
-          cartId: cart.id,
-        },
+        metadata,
       },
       success_url: `${env.APP_URL}/${lang}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${env.APP_URL}/${lang}/checkout/cancel`,

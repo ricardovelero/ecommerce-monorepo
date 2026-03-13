@@ -26,6 +26,13 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum FulfillmentStatus {
+  UNFULFILLED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+}
+
 model User {
   id                String     @id @default(cuid())
   externalId        String     @unique
@@ -101,9 +108,20 @@ model Order {
   userId                  String
   user                    User        @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade)
   status                  OrderStatus @default(PENDING)
+  fulfillmentStatus       FulfillmentStatus @default(UNFULFILLED)
   currency                String      @default("EUR")
   subtotalCents           Int
   totalCents              Int
+  customerName            String?
+  phone                   String?
+  shippingAddressLine1    String?
+  shippingAddressLine2    String?
+  shippingCity            String?
+  shippingPostalCode      String?
+  shippingCountry         String?
+  shippingNotes           String?
+  trackingNumber          String?
+  fulfilledAt             DateTime?
   stripeCheckoutSessionId String?     @unique
   stripePaymentIntentId   String?     @unique
   stripeCustomerId        String?

@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@prisma/client";
+import type { FulfillmentStatus, OrderStatus } from "@prisma/client";
 
 import { prisma } from "@/db/prisma";
 import { HttpError } from "@/utils/httpError";
@@ -15,9 +15,20 @@ export interface OrderDTO {
   id: string;
   userId: string;
   status: OrderStatus;
+  fulfillmentStatus: FulfillmentStatus;
   currency: string;
   subtotalCents: number;
   totalCents: number;
+  customerName: string | null;
+  phone: string | null;
+  shippingAddressLine1: string | null;
+  shippingAddressLine2: string | null;
+  shippingCity: string | null;
+  shippingPostalCode: string | null;
+  shippingCountry: string | null;
+  shippingNotes: string | null;
+  trackingNumber: string | null;
+  fulfilledAt: Date | null;
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
   stripeCustomerId: string | null;
@@ -31,9 +42,20 @@ function toOrderDTO(order: {
   id: string;
   userId: string;
   status: OrderStatus;
+  fulfillmentStatus: FulfillmentStatus;
   currency: string;
   subtotalCents: number;
   totalCents: number;
+  customerName: string | null;
+  phone: string | null;
+  shippingAddressLine1: string | null;
+  shippingAddressLine2: string | null;
+  shippingCity: string | null;
+  shippingPostalCode: string | null;
+  shippingCountry: string | null;
+  shippingNotes: string | null;
+  trackingNumber: string | null;
+  fulfilledAt: Date | null;
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
   stripeCustomerId: string | null;
@@ -52,9 +74,20 @@ function toOrderDTO(order: {
     id: order.id,
     userId: order.userId,
     status: order.status,
+    fulfillmentStatus: order.fulfillmentStatus,
     currency: order.currency,
     subtotalCents: order.subtotalCents,
     totalCents: order.totalCents,
+    customerName: order.customerName,
+    phone: order.phone,
+    shippingAddressLine1: order.shippingAddressLine1,
+    shippingAddressLine2: order.shippingAddressLine2,
+    shippingCity: order.shippingCity,
+    shippingPostalCode: order.shippingPostalCode,
+    shippingCountry: order.shippingCountry,
+    shippingNotes: order.shippingNotes,
+    trackingNumber: order.trackingNumber,
+    fulfilledAt: order.fulfilledAt,
     stripeCheckoutSessionId: order.stripeCheckoutSessionId,
     stripePaymentIntentId: order.stripePaymentIntentId,
     stripeCustomerId: order.stripeCustomerId,
@@ -124,6 +157,33 @@ export async function getAdminOrderById(orderId: string): Promise<OrderDTO> {
   if (!order) {
     throw new HttpError(404, "Order not found");
   }
+
+  return toOrderDTO(order);
+}
+
+export async function updateAdminOrderFulfillment(input: {
+  orderId: string;
+  fulfillmentStatus: FulfillmentStatus;
+  trackingNumber?: string | null;
+}): Promise<OrderDTO> {
+  const existing = await prisma.order.findUnique({
+    where: { id: input.orderId },
+    include: { items: true },
+  });
+
+  if (!existing) {
+    throw new HttpError(404, "Order not found");
+  }
+
+  const order = await prisma.order.update({
+    where: { id: input.orderId },
+    data: {
+      fulfillmentStatus: input.fulfillmentStatus,
+      trackingNumber: input.trackingNumber?.trim() ? input.trackingNumber.trim() : null,
+      fulfilledAt: input.fulfillmentStatus === "DELIVERED" ? new Date() : null,
+    },
+    include: { items: true },
+  });
 
   return toOrderDTO(order);
 }
