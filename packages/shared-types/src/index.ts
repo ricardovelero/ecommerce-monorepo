@@ -96,7 +96,9 @@ export interface OrderDTO {
   shippingPostalCode?: string | null;
   shippingCountry?: string | null;
   shippingNotes?: string | null;
+  shippingCarrier?: string | null;
   trackingNumber?: string | null;
+  trackingUrl?: string | null;
   fulfilledAt?: string | null;
   stripeCheckoutSessionId?: string | null;
   stripePaymentIntentId?: string | null;
@@ -109,4 +111,68 @@ export interface OrderDTO {
 
 export interface CheckoutSessionResponseDTO {
   url: string;
+}
+
+export interface CheckoutReconcileResponseDTO {
+  status: "queued" | "existing" | "pending_payment";
+}
+
+export interface CheckoutSessionStatusResponseDTO {
+  status: "existing" | "processing" | "pending_payment";
+}
+
+export interface AdminOrderFulfillmentUpdateDTO {
+  fulfillmentStatus: FulfillmentStatus;
+  shippingCarrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  fulfilledAt?: string | null;
+}
+
+export interface AnalyticsMetricDTO {
+  label: string;
+  value: number;
+}
+
+export interface RevenueTrendPointDTO {
+  date: string;
+  revenueCents: number;
+  orders: number;
+}
+
+export interface TopProductAnalyticsDTO {
+  productId: string;
+  name: string;
+  unitsSold: number;
+  revenueCents: number;
+}
+
+export interface InventoryRiskDTO {
+  lowStockCount: number;
+  outOfStockCount: number;
+  lowStockProducts: Array<{
+    id: string;
+    name: string;
+    stock: number;
+  }>;
+}
+
+export interface CustomerAnalyticsDTO {
+  totalCustomers: number;
+  repeatCustomers: number;
+  firstTimeCustomers: number;
+}
+
+export interface AdminAnalyticsDTO {
+  revenue: {
+    totalRevenueCents: number;
+    paidOrders: number;
+    averageOrderValueCents: number;
+  };
+  orderStatusBreakdown: AnalyticsMetricDTO[];
+  fulfillmentBreakdown: AnalyticsMetricDTO[];
+  revenueTrend: RevenueTrendPointDTO[];
+  topProducts: TopProductAnalyticsDTO[];
+  inventoryRisk: InventoryRiskDTO;
+  customers: CustomerAnalyticsDTO;
 }

@@ -16,7 +16,7 @@ export function createRedisConnection(redisUrl: string): IORedis {
 }
 
 export function getStripeWebhookJobId(eventId: string): string {
-  return `stripe-event:${eventId}`;
+  return `stripe-event-${eventId}`;
 }
 
 export function createOrderQueue(

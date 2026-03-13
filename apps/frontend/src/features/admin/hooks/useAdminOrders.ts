@@ -1,4 +1,4 @@
-import type { OrderDTO } from "@ecommerce/shared-types";
+import type { AdminOrderFulfillmentUpdateDTO, OrderDTO } from "@ecommerce/shared-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useHttpClient } from "@/features/shared/api/useHttpClient";
@@ -27,7 +27,7 @@ export function useUpdateAdminOrderFulfillment(orderId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: { fulfillmentStatus: OrderDTO["fulfillmentStatus"]; trackingNumber?: string | null }) =>
+    mutationFn: (payload: AdminOrderFulfillmentUpdateDTO) =>
       http.patch<OrderDTO>(`/api/admin/orders/${orderId}/fulfillment`, payload),
     onSuccess: (order) => {
       queryClient.setQueryData(["admin", "orders", orderId], order);

@@ -8,6 +8,7 @@ import {
   putAdminCategory,
 } from "@/controllers/adminCategoryController";
 import {
+  getAdminAnalyticsController,
   getAdminOrderByIdController,
   getAdminOrdersController,
   patchAdminOrderFulfillmentController,
@@ -64,3 +65,4 @@ adminRoutes.patch(
   validate(adminOrderFulfillmentSchema),
   asyncHandler(patchAdminOrderFulfillmentController),
 );
+adminRoutes.get("/admin/analytics", asyncHandler(getAdminAnalyticsController));

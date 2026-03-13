@@ -1,6 +1,10 @@
 import { Router } from "express";
 
-import { createCheckoutSessionController } from "@/controllers/checkoutController";
+import {
+  createCheckoutSessionController,
+  getCheckoutSessionStatusController,
+  reconcileCheckoutSessionController,
+} from "@/controllers/checkoutController";
 import { requireAuth } from "@/middleware/auth/requireAuth";
 import { verifyJwt } from "@/middleware/auth/verifyJwt";
 import { validate } from "@/middleware/validate";
@@ -15,4 +19,16 @@ checkoutRoutes.post(
   requireAuth,
   validate(createCheckoutSessionSchema),
   asyncHandler(createCheckoutSessionController),
+);
+checkoutRoutes.get(
+  "/checkout/session/:id/status",
+  verifyJwt,
+  requireAuth,
+  asyncHandler(getCheckoutSessionStatusController),
+);
+checkoutRoutes.post(
+  "/checkout/session/:id/reconcile",
+  verifyJwt,
+  requireAuth,
+  asyncHandler(reconcileCheckoutSessionController),
 );

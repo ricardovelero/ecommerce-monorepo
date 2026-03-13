@@ -13,6 +13,38 @@ import { AdminNav } from "@/features/admin/AdminNav";
 import { useAdminOrder, useUpdateAdminOrderFulfillment } from "@/features/admin/hooks/useAdminOrders";
 import { formatPrice } from "@/lib/utils";
 
+function toDateTimeLocalValue(value: string | null | undefined): string {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function toIsoString(value: string): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+}
+
 export function AdminOrderDetailPage() {
   const { t } = useTranslation();
   const { id, lang } = useParams();
@@ -21,7 +53,10 @@ export function AdminOrderDetailPage() {
   const prefix = `/${lang ?? "es"}/admin`;
   const locale = lang === "en" ? "en-US" : "es-ES";
   const [fulfillmentStatus, setFulfillmentStatus] = useState("UNFULFILLED");
+  const [shippingCarrier, setShippingCarrier] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
+  const [fulfilledAt, setFulfilledAt] = useState("");
 
   useEffect(() => {
     if (!order) {
@@ -29,7 +64,10 @@ export function AdminOrderDetailPage() {
     }
 
     setFulfillmentStatus(order.fulfillmentStatus);
+    setShippingCarrier(order.shippingCarrier ?? "");
     setTrackingNumber(order.trackingNumber ?? "");
+    setTrackingUrl(order.trackingUrl ?? "");
+    setFulfilledAt(toDateTimeLocalValue(order.fulfilledAt));
   }, [order]);
 
   return (
@@ -63,7 +101,18 @@ export function AdminOrderDetailPage() {
               <p>{t("admin.orders.session")}: {order.stripeCheckoutSessionId ?? "-"}</p>
               <p>{t("admin.orders.intent")}: {order.stripePaymentIntentId ?? "-"}</p>
               <p>{t("admin.orders.customer")}: {order.stripeCustomerId ?? "-"}</p>
+              <p>{t("admin.orders.shippingCarrier")}: {order.shippingCarrier ?? "-"}</p>
               <p>{t("admin.orders.trackingNumber")}: {order.trackingNumber ?? "-"}</p>
+              <p>
+                {t("admin.orders.trackingUrl")}:{" "}
+                {order.trackingUrl ? (
+                  <a href={order.trackingUrl} target="_blank" rel="noreferrer" className="underline">
+                    {order.trackingUrl}
+                  </a>
+                ) : (
+                  "-"
+                )}
+              </p>
               <p>
                 {t("admin.orders.paidAt")}: {order.paidAt ? new Date(order.paidAt).toLocaleString(locale) : "-"}
               </p>
@@ -72,7 +121,7 @@ export function AdminOrderDetailPage() {
               </p>
             </div>
 
-            <div className="grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_1fr_auto]">
+            <div className="grid gap-3 rounded-lg border p-4 md:grid-cols-2">
               <div>
                 <label className="text-sm text-muted-foreground">{t("admin.orders.fulfillmentStatus")}</label>
                 <select
@@ -87,15 +136,35 @@ export function AdminOrderDetailPage() {
                 </select>
               </div>
               <div>
+                <label className="text-sm text-muted-foreground">{t("admin.orders.shippingCarrier")}</label>
+                <Input value={shippingCarrier} onChange={(event) => setShippingCarrier(event.target.value)} className="mt-1" />
+              </div>
+              <div>
                 <label className="text-sm text-muted-foreground">{t("admin.orders.trackingNumber")}</label>
                 <Input value={trackingNumber} onChange={(event) => setTrackingNumber(event.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">{t("admin.orders.trackingUrl")}</label>
+                <Input value={trackingUrl} onChange={(event) => setTrackingUrl(event.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">{t("admin.orders.fulfilledAt")}</label>
+                <Input
+                  type="datetime-local"
+                  value={fulfilledAt}
+                  onChange={(event) => setFulfilledAt(event.target.value)}
+                  className="mt-1"
+                />
               </div>
               <div className="flex items-end">
                 <Button
                   onClick={() =>
                     updateFulfillment.mutate({
                       fulfillmentStatus: fulfillmentStatus as OrderDTO["fulfillmentStatus"],
+                      shippingCarrier: shippingCarrier.trim() || null,
                       trackingNumber: trackingNumber.trim() || null,
+                      trackingUrl: trackingUrl.trim() || null,
+                      fulfilledAt: toIsoString(fulfilledAt),
                     })
                   }
                   disabled={updateFulfillment.isPending}

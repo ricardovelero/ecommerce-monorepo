@@ -27,7 +27,9 @@ export interface OrderDTO {
   shippingPostalCode: string | null;
   shippingCountry: string | null;
   shippingNotes: string | null;
+  shippingCarrier: string | null;
   trackingNumber: string | null;
+  trackingUrl: string | null;
   fulfilledAt: Date | null;
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
@@ -54,7 +56,9 @@ function toOrderDTO(order: {
   shippingPostalCode: string | null;
   shippingCountry: string | null;
   shippingNotes: string | null;
+  shippingCarrier: string | null;
   trackingNumber: string | null;
+  trackingUrl: string | null;
   fulfilledAt: Date | null;
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
@@ -86,7 +90,9 @@ function toOrderDTO(order: {
     shippingPostalCode: order.shippingPostalCode,
     shippingCountry: order.shippingCountry,
     shippingNotes: order.shippingNotes,
+    shippingCarrier: order.shippingCarrier,
     trackingNumber: order.trackingNumber,
+    trackingUrl: order.trackingUrl,
     fulfilledAt: order.fulfilledAt,
     stripeCheckoutSessionId: order.stripeCheckoutSessionId,
     stripePaymentIntentId: order.stripePaymentIntentId,
@@ -164,7 +170,10 @@ export async function getAdminOrderById(orderId: string): Promise<OrderDTO> {
 export async function updateAdminOrderFulfillment(input: {
   orderId: string;
   fulfillmentStatus: FulfillmentStatus;
+  shippingCarrier?: string | null;
   trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  fulfilledAt?: Date | null;
 }): Promise<OrderDTO> {
   const existing = await prisma.order.findUnique({
     where: { id: input.orderId },
@@ -179,8 +188,13 @@ export async function updateAdminOrderFulfillment(input: {
     where: { id: input.orderId },
     data: {
       fulfillmentStatus: input.fulfillmentStatus,
+      shippingCarrier: input.shippingCarrier?.trim() ? input.shippingCarrier.trim() : null,
       trackingNumber: input.trackingNumber?.trim() ? input.trackingNumber.trim() : null,
-      fulfilledAt: input.fulfillmentStatus === "DELIVERED" ? new Date() : null,
+      trackingUrl: input.trackingUrl?.trim() ? input.trackingUrl.trim() : null,
+      fulfilledAt:
+        input.fulfillmentStatus === "DELIVERED"
+          ? input.fulfilledAt ?? existing.fulfilledAt ?? new Date()
+          : null,
     },
     include: { items: true },
   });

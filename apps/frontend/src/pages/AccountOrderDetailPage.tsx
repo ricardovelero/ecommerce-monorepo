@@ -58,7 +58,18 @@ export function AccountOrderDetailPage() {
               <p>{t("account.detail.fulfillmentStatus")}: {order.fulfillmentStatus}</p>
               <p>{t("account.detail.total")}: {formatPrice(order.totalCents, order.currency, locale)}</p>
               <p>{t("account.detail.created")}: {new Date(order.createdAt).toLocaleString(locale)}</p>
+              <p>{t("account.detail.shippingCarrier")}: {order.shippingCarrier ?? "-"}</p>
               <p>{t("account.detail.trackingNumber")}: {order.trackingNumber ?? "-"}</p>
+              <p>
+                {t("account.detail.trackingUrl")}:{" "}
+                {order.trackingUrl ? (
+                  <a href={order.trackingUrl} target="_blank" rel="noreferrer" className="underline">
+                    {t("account.detail.trackShipment")}
+                  </a>
+                ) : (
+                  "-"
+                )}
+              </p>
               {order.fulfilledAt ? <p>{t("account.detail.fulfilledAt")}: {new Date(order.fulfilledAt).toLocaleString(locale)}</p> : null}
             </div>
 

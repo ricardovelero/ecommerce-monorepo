@@ -1,7 +1,10 @@
+import { createHash } from "node:crypto";
+
 import { CartStatus, Prisma } from "@prisma/client";
 
 import { env } from "@/config/env";
 import { prisma } from "@/db/prisma";
+import { enqueueStripeWebhookJob } from "@/services/queue/orderQueue";
 import { getStripeClient } from "@/services/stripeService";
 import { HttpError } from "@/utils/httpError";
 
@@ -40,6 +43,47 @@ function assertStockAvailability(items: CheckoutCartItem[]): void {
   if (unavailable) {
     throw new HttpError(409, `Insufficient stock for product ${unavailable.product.name}`);
   }
+}
+
+function buildCheckoutIdempotencyKey(input: {
+  cartId: string;
+  subtotalCents: number;
+  items: Array<{ productId: string; quantity: number }>;
+  lang: "es" | "en";
+  email?: string | null;
+  metadata: Record<string, string>;
+}): string {
+  const fingerprint = JSON.stringify({
+    subtotalCents: input.subtotalCents,
+    items: input.items
+      .map((item) => `${item.productId}:${item.quantity}`)
+      .sort(),
+    lang: input.lang,
+    email: input.email?.trim().toLowerCase() ?? "guest",
+    metadata: Object.entries(input.metadata).sort(([left], [right]) => left.localeCompare(right)),
+  });
+
+  const digest = createHash("sha256").update(fingerprint).digest("hex");
+  return `checkout:${input.cartId}:${digest}`;
+}
+
+async function findReusableStripeCustomerId(userId: string): Promise<string | null> {
+  const previousOrder = await prisma.order.findFirst({
+    where: {
+      userId,
+      stripeCustomerId: {
+        not: null,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      stripeCustomerId: true,
+    },
+  });
+
+  return previousOrder?.stripeCustomerId ?? null;
 }
 
 export async function createCheckoutSession(input: {
@@ -83,7 +127,8 @@ export async function createCheckoutSession(input: {
   const lang = assertLanguage(input.lang);
 
   const stripe = getStripeClient();
-  const metadata = {
+  const reusableStripeCustomerId = await findReusableStripeCustomerId(input.userId);
+  const metadata: Record<string, string> = {
     userId: input.userId,
     cartId: cart.id,
     customerName: input.customerName,
@@ -95,15 +140,29 @@ export async function createCheckoutSession(input: {
     shippingCountry: input.shippingCountry,
     ...(input.shippingNotes ? { shippingNotes: input.shippingNotes } : {}),
   };
-  const idempotencyKey = `checkout:${cart.id}:${subtotalCents}:${cart.items
-    .map((item) => `${item.productId}:${item.quantity}`)
-    .sort()
-    .join(",")}`;
+  const idempotencyKey = buildCheckoutIdempotencyKey({
+    cartId: cart.id,
+    subtotalCents,
+    items: cart.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    })),
+    lang,
+    email: input.email,
+    metadata,
+  });
 
   const session = await stripe.checkout.sessions.create(
     {
       mode: "payment",
       ...(input.email ? { customer_email: input.email } : {}),
+      ...(reusableStripeCustomerId
+        ? {
+            customer: reusableStripeCustomerId,
+          }
+        : {
+            customer_creation: "always" as const,
+          }),
       line_items: cart.items.map((item) => ({
         quantity: item.quantity,
         price_data: {
@@ -156,4 +215,92 @@ export async function registerWebhookEvent(input: {
 
     throw error;
   }
+}
+
+export async function reconcileCheckoutSession(input: {
+  userId: string;
+  sessionId: string;
+}): Promise<{ status: "queued" | "existing" | "pending_payment" }> {
+  const stripe = getStripeClient();
+  const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+
+  const metadataUserId = session.metadata?.userId;
+  if (!metadataUserId || metadataUserId !== input.userId) {
+    throw new HttpError(404, "Checkout session not found");
+  }
+
+  const existingOrder = await prisma.order.findFirst({
+    where: {
+      OR: [
+        {
+          stripeCheckoutSessionId: session.id,
+        },
+        ...(typeof session.payment_intent === "string"
+          ? [
+              {
+                stripePaymentIntentId: session.payment_intent,
+              },
+            ]
+          : []),
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (existingOrder) {
+    return { status: "existing" };
+  }
+
+  if (session.payment_status !== "paid") {
+    return { status: "pending_payment" };
+  }
+
+  await enqueueStripeWebhookJob({
+    stripeEventId: `manual-checkout-session:${session.id}`,
+    stripeEventType: "checkout.session.completed",
+    stripeObjectId: session.id,
+  });
+
+  return { status: "queued" };
+}
+
+export async function getCheckoutSessionStatus(input: {
+  userId: string;
+  sessionId: string;
+}): Promise<{ status: "existing" | "processing" | "pending_payment" }> {
+  const stripe = getStripeClient();
+  const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+
+  const metadataUserId = session.metadata?.userId;
+  if (!metadataUserId || metadataUserId !== input.userId) {
+    throw new HttpError(404, "Checkout session not found");
+  }
+
+  const existingOrder = await prisma.order.findFirst({
+    where: {
+      OR: [
+        {
+          stripeCheckoutSessionId: session.id,
+        },
+        ...(typeof session.payment_intent === "string"
+          ? [
+              {
+                stripePaymentIntentId: session.payment_intent,
+              },
+            ]
+          : []),
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (existingOrder) {
+    return { status: "existing" };
+  }
+
+  if (session.payment_status !== "paid") {
+    return { status: "pending_payment" };
+  }
+
+  return { status: "processing" };
 }
