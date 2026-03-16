@@ -18,6 +18,7 @@ import { merchandisingRoutes } from "@/routes/merchandisingRoutes";
 import { orderRoutes } from "@/routes/orderRoutes";
 import { productRoutes } from "@/routes/productRoutes";
 import { seoRoutes } from "@/routes/seoRoutes";
+import { createStorefrontSeoRoutes } from "@/routes/storefrontSeoRoutes";
 import { stripeWebhookRoutes } from "@/routes/stripeWebhookRoutes";
 
 const app: express.Express = express();
@@ -48,6 +49,7 @@ app.use("/api", adminRoutes);
 
 const frontendDistPath = path.resolve(__dirname, env.FRONTEND_DIST_PATH);
 
+app.use(createStorefrontSeoRoutes(frontendDistPath));
 app.use(express.static(frontendDistPath));
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api") || req.path === "/health") {
