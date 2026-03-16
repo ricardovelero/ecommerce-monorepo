@@ -30,20 +30,34 @@ Send an email to the customer when an admin updates the order fulfillment status
   - no-op update does not send email
   - missing email/Postmark config is handled safely
 
-## Next priority: Merchandising
+## Recently completed: Merchandising
 
-- Define homepage merchandising blocks
-- Add featured products / collections / best sellers
-- Add admin controls for merchandising order and visibility
+### Completed
 
-## Later roadmap
+- Homepage merchandising blocks defined around:
+  - featured products
+  - best sellers
+  - new arrivals
+- Backend merchandising endpoint added for homepage sections
+- Product merchandising fields added:
+  - `isFeatured`
+  - `featuredRank`
+- Admin product controls added for merchandising visibility and order
+- Homepage updated to render live merchandising sections from backend data
+- Seed data updated so local environments have featured products ready
+- Tests added for:
+  - homepage merchandising ordering/derivation
+  - admin featured-rank normalization behavior
+  - featured-rank validation rules
 
-### SEO
+## Next priority: SEO
 
 - Add per-page title and meta description
 - Add product/category SEO fields
 - Add canonical URLs, sitemap, and robots.txt
 - Review structured data for product pages
+
+## Later roadmap
 
 ### Reviews
 
