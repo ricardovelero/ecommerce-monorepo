@@ -29,7 +29,13 @@ test("renderHomePage injects route-specific SEO tags into the HTML shell", async
   const response = await service.renderHomePage("es");
 
   assert.equal(response.statusCode, 200);
+  assert.match(response.html, /<html lang="es">/);
   assert.match(response.html, /<title>Sol iO \| Productos destacados, más vendidos y novedades<\/title>/);
+  assert.equal(response.html.match(/<meta name="description"/g)?.length, 1);
+  assert.match(
+    response.html,
+    /<meta name="description" content="Explora en Sol iO los productos destacados, los más vendidos y las últimas novedades en una storefront curada\." \/>/,
+  );
   assert.match(response.html, /<link rel="canonical" href="https:\/\/shop\.example\.com\/es" \/>/);
   assert.match(response.html, /<meta property="og:title" content="Sol iO \| Productos destacados, más vendidos y novedades" \/>/);
 });
@@ -56,6 +62,8 @@ test("renderProductDetailPage injects product metadata and returns 404 metadata 
   const missing = await service.renderProductDetailPage("en", "missing");
 
   assert.equal(found.statusCode, 200);
+  assert.match(found.html, /<html lang="en">/);
+  assert.equal(found.html.match(/<meta name="description"/g)?.length, 1);
   assert.match(found.html, /<title>Hydrating Serum \| Sol iO<\/title>/);
   assert.match(found.html, /<meta property="og:image" content="https:\/\/cdn\.example\.com\/product\.jpg" \/>/);
 

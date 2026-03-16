@@ -95,7 +95,6 @@ function replaceOrInsertTag(html: string, pattern: RegExp, replacement: string):
 function buildSeoHead(metadata: SeoMetadata, appUrl: string): string {
   const canonicalUrl = new URL(metadata.canonicalPath, appUrl).toString();
   const tags = [
-    `<meta name="description" content="${escapeHtml(metadata.description)}" />`,
     `<meta name="robots" content="${escapeHtml(metadata.robots ?? "index,follow")}" />`,
     `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
     `<meta property="og:title" content="${escapeHtml(metadata.title)}" />`,
@@ -112,8 +111,9 @@ function buildSeoHead(metadata: SeoMetadata, appUrl: string): string {
   return tags.join("\n  ");
 }
 
-function injectSeoIntoHtml(templateHtml: string, metadata: SeoMetadata, appUrl: string): string {
+function injectSeoIntoHtml(templateHtml: string, metadata: SeoMetadata, appUrl: string, lang: PublicLang): string {
   let html = templateHtml.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(metadata.title)}</title>`);
+  html = html.replace(/<html\b([^>]*)\blang=["'][^"']*["']([^>]*)>/i, `<html$1lang="${lang}"$2>`);
 
   html = replaceOrInsertTag(
     html,
@@ -146,7 +146,7 @@ export function createSeoHtmlService(deps: {
       } satisfies SeoMetadata;
 
       return {
-        html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl),
+        html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl, lang),
         statusCode: 200,
       };
     },
@@ -158,7 +158,7 @@ export function createSeoHtmlService(deps: {
       } satisfies SeoMetadata;
 
       return {
-        html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl),
+        html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl, lang),
         statusCode: 200,
       };
     },
@@ -175,7 +175,7 @@ export function createSeoHtmlService(deps: {
         } satisfies SeoMetadata;
 
         return {
-          html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl),
+          html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl, lang),
           statusCode: 200,
         };
       } catch (error) {
@@ -190,7 +190,7 @@ export function createSeoHtmlService(deps: {
         } satisfies SeoMetadata;
 
         return {
-          html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl),
+          html: injectSeoIntoHtml(await deps.getTemplateHtml(), metadata, deps.appUrl, lang),
           statusCode: 404,
         };
       }
@@ -200,13 +200,29 @@ export function createSeoHtmlService(deps: {
 
 export function createTemplateHtmlLoader(frontendDistPath: string) {
   let cachedTemplate: string | null = null;
+  const fallbackTemplatePath = path.resolve(frontendDistPath, "../../frontend/index.html");
 
   return async () => {
     if (cachedTemplate !== null) {
       return cachedTemplate;
     }
 
-    cachedTemplate = await readFile(path.join(frontendDistPath, "index.html"), "utf8");
+    try {
+      cachedTemplate = await readFile(path.join(frontendDistPath, "index.html"), "utf8");
+      return cachedTemplate;
+    } catch (error) {
+      const isMissingPrimaryTemplate =
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "ENOENT";
+
+      if (!isMissingPrimaryTemplate) {
+        throw error;
+      }
+    }
+
+    cachedTemplate = await readFile(fallbackTemplatePath, "utf8");
     return cachedTemplate;
   };
 }
