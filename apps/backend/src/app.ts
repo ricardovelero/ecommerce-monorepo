@@ -14,6 +14,7 @@ import { authRoutes } from "@/routes/authRoutes";
 import { cartRoutes } from "@/routes/cartRoutes";
 import { checkoutRoutes } from "@/routes/checkoutRoutes";
 import { healthRoutes } from "@/routes/healthRoutes";
+import { merchandisingRoutes } from "@/routes/merchandisingRoutes";
 import { orderRoutes } from "@/routes/orderRoutes";
 import { productRoutes } from "@/routes/productRoutes";
 import { stripeWebhookRoutes } from "@/routes/stripeWebhookRoutes";
@@ -35,6 +36,7 @@ app.use("/api/webhooks/stripe", stripeWebhookRoutes);
 app.use(express.json());
 
 app.use(healthRoutes);
+app.use("/api", merchandisingRoutes);
 app.use("/api", productRoutes);
 app.use("/api", cartRoutes);
 app.use("/api", authRoutes);

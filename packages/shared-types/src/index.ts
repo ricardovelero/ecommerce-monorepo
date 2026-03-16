@@ -31,6 +31,12 @@ export interface ProductListResponseDTO {
   totalPages: number;
 }
 
+export interface HomeMerchandisingResponseDTO {
+  featuredProducts: ProductDTO[];
+  bestSellers: ProductDTO[];
+  newArrivals: ProductDTO[];
+}
+
 export interface CheckoutSessionRequestDTO {
   lang?: LanguageCode;
   customerName: string;

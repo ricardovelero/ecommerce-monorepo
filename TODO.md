@@ -1,49 +1,42 @@
 # TODO
 
-Paused on 2026-03-13.
+Updated on 2026-03-16.
 
-## Next priority: order fulfillment emails
+## Recently completed: order fulfillment emails
 
 ### Goal
 
 Send an email to the customer when an admin updates the order fulfillment status, including tracking number and tracking link when they are added.
 
-### Current code to start from
+### Completed
 
-- Backend fulfillment update: `apps/backend/src/services/orderService.ts`
-- Admin fulfillment endpoint/controller: `apps/backend/src/controllers/adminOrderController.ts`
-- Admin fulfillment validation: `apps/backend/src/validators/adminOrderValidators.ts`
-- Existing order email service: `apps/worker/src/services/emailService.ts`
-- Admin order detail UI: `apps/frontend/src/features/admin/AdminOrderDetailPage.tsx`
-
-### TODO
-
-- Decide the trigger rules:
+- Trigger rules implemented:
   - send email when fulfillment status changes
   - send email when tracking number or tracking URL is newly added or changed
   - avoid duplicate emails when admin saves without meaningful changes
-- Add a dedicated email template/service for fulfillment updates
-- Wire fulfillment email sending into the admin order update flow
-- Include in the email:
+- Dedicated backend fulfillment email service/template added
+- Fulfillment email sending wired into the admin order update flow
+- Email includes:
   - order id
   - current fulfillment status
   - tracking number when present
   - tracking URL when present
-- Confirm which customer email should be used when `User.email` is missing
-- Add logging for sent/skipped fulfillment emails
-- Add tests for:
+- Current fallback behavior when `User.email` is missing:
+  - skip send and log the reason
+- Sent/skipped fulfillment email logging added
+- Tests added for:
   - status change sends email
   - tracking info added sends email
   - no-op update does not send email
   - missing email/Postmark config is handled safely
 
-## Later roadmap
-
-### Merchandising
+## Next priority: Merchandising
 
 - Define homepage merchandising blocks
 - Add featured products / collections / best sellers
 - Add admin controls for merchandising order and visibility
+
+## Later roadmap
 
 ### SEO
 

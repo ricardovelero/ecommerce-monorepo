@@ -56,6 +56,8 @@ async function main() {
       priceCents: 2290,
       stock: 120,
       imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03",
+      isFeatured: true,
+      featuredRank: 1,
       categoryId: categorySkincare.id,
     },
     {
@@ -64,6 +66,8 @@ async function main() {
       priceCents: 2890,
       stock: 90,
       imageUrl: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b",
+      isFeatured: true,
+      featuredRank: 2,
       categoryId: categorySkincare.id,
     },
     {
@@ -72,6 +76,8 @@ async function main() {
       priceCents: 1790,
       stock: 160,
       imageUrl: "https://images.unsplash.com/photo-1629198735660-e39ea93f5c18",
+      isFeatured: true,
+      featuredRank: 3,
       categoryId: categorySkincare.id,
     },
     {
@@ -80,6 +86,8 @@ async function main() {
       priceCents: 1990,
       stock: 130,
       imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae",
+      isFeatured: false,
+      featuredRank: null,
       categoryId: categorySupplements.id,
     },
     {
@@ -88,6 +96,8 @@ async function main() {
       priceCents: 1590,
       stock: 140,
       imageUrl: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2",
+      isFeatured: false,
+      featuredRank: null,
       categoryId: categorySupplements.id,
     },
     {
@@ -96,6 +106,8 @@ async function main() {
       priceCents: 1290,
       stock: 180,
       imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+      isFeatured: false,
+      featuredRank: null,
       categoryId: categorySupplements.id,
     },
   ];

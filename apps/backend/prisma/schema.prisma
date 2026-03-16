@@ -69,6 +69,8 @@ model Product {
   stock       Int      @default(0)
   currency    String   @default("EUR")
   imageUrl    String?
+  isFeatured  Boolean  @default(false)
+  featuredRank Int?
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   createdAt   DateTime @default(now())
@@ -79,6 +81,8 @@ model Product {
   updatedBy   User?    @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   cartItems   CartItem[]
   orderItems  OrderItem[]
+
+  @@index([isFeatured, featuredRank])
 }
 
 model Cart {
