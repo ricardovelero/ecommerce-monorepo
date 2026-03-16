@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
 import { useOrder } from "@/features/orders/hooks/useOrder";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 import { formatPrice } from "@/lib/utils";
 
 export function AccountOrderDetailPage() {
@@ -18,6 +19,14 @@ export function AccountOrderDetailPage() {
   const { t } = useTranslation();
   const prefix = `/${lang ?? "es"}`;
   const locale = lang === "en" ? "en-US" : "es-ES";
+  const activeLang = lang ?? "es";
+
+  usePageSeo({
+    title: order ? t("seo.accountOrderDetail.title", { id: order.id.slice(0, 8) }) : t("seo.accountOrderDetail.fallbackTitle"),
+    description: t("seo.accountOrderDetail.description"),
+    canonicalPath: `/${activeLang}/account/orders/${id ?? ""}`,
+    robots: "noindex,nofollow",
+  });
 
   useEffect(() => {
     if (!authClient.isAuthenticated()) {

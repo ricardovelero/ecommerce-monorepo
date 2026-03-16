@@ -13,6 +13,7 @@ import { useCart } from "@/features/cart/hooks/useCart";
 import { useCreateCheckoutSession } from "@/features/cart/hooks/useCreateCheckoutSession";
 import { useRemoveCartItem } from "@/features/cart/hooks/useRemoveCartItem";
 import { useUpdateCartItemQuantity } from "@/features/cart/hooks/useUpdateCartItemQuantity";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 import { formatPrice } from "@/lib/utils";
 
 const EMPTY_CHECKOUT_FORM = {
@@ -35,12 +36,20 @@ export function CartPage() {
   const authClient = useAuthClient();
   const { notify } = useToast();
   const { lang } = useParams();
+  const activeLang = lang ?? "es";
   const [redirecting, setRedirecting] = useState(false);
   const [checkoutForm, setCheckoutForm] = useState(EMPTY_CHECKOUT_FORM);
 
   const locale = i18n.language === "en" ? "en-US" : "es-ES";
   const items = cart?.items ?? [];
   const subtotalCents = items.reduce((acc, item) => acc + item.priceCents * item.quantity, 0);
+
+  usePageSeo({
+    title: t("seo.cart.title"),
+    description: t("seo.cart.description"),
+    canonicalPath: `/${activeLang}/cart`,
+    robots: "noindex,nofollow",
+  });
 
   async function checkout() {
     if (!authClient.isAuthenticated()) {

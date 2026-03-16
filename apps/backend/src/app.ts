@@ -17,6 +17,7 @@ import { healthRoutes } from "@/routes/healthRoutes";
 import { merchandisingRoutes } from "@/routes/merchandisingRoutes";
 import { orderRoutes } from "@/routes/orderRoutes";
 import { productRoutes } from "@/routes/productRoutes";
+import { seoRoutes } from "@/routes/seoRoutes";
 import { stripeWebhookRoutes } from "@/routes/stripeWebhookRoutes";
 
 const app: express.Express = express();
@@ -36,6 +37,7 @@ app.use("/api/webhooks/stripe", stripeWebhookRoutes);
 app.use(express.json());
 
 app.use(healthRoutes);
+app.use(seoRoutes);
 app.use("/api", merchandisingRoutes);
 app.use("/api", productRoutes);
 app.use("/api", cartRoutes);

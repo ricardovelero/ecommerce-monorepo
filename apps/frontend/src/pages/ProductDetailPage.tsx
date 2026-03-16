@@ -10,16 +10,24 @@ import { useToast } from "@/components/ui/toast";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
 import { useAddToCart } from "@/features/cart/hooks/useAddToCart";
 import { useProduct } from "@/features/products/hooks/useProduct";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 import { formatPrice } from "@/lib/utils";
 
 export function ProductDetailPage() {
-  const { id } = useParams();
+  const { id, lang } = useParams();
   const { t, i18n } = useTranslation();
   const { data: product, isLoading, isError, refetch } = useProduct(id);
   const addToCart = useAddToCart();
   const authClient = useAuthClient();
   const { notify } = useToast();
   const locale = i18n.language === "en" ? "en-US" : "es-ES";
+  const activeLang = lang ?? "es";
+
+  usePageSeo({
+    title: product ? t("seo.product.title", { name: product.name }) : t("seo.product.fallbackTitle"),
+    description: product?.description ?? t("seo.product.fallbackDescription"),
+    canonicalPath: `/${activeLang}/products/${id ?? ""}`,
+  });
 
   async function onAddToCart() {
     if (!product) {

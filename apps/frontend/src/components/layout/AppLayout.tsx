@@ -14,6 +14,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       void i18n.changeLanguage(target);
     }
     window.localStorage.setItem(languageStorageKey, target);
+    document.documentElement.lang = target;
   }, [lang]);
 
   return (

@@ -4,12 +4,21 @@ import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 
 export function AccountPage() {
   const authClient = useAuthClient();
   const { t } = useTranslation();
   const { lang } = useParams();
   const prefix = `/${lang ?? "es"}`;
+  const activeLang = lang ?? "es";
+
+  usePageSeo({
+    title: t("seo.account.title"),
+    description: t("seo.account.description"),
+    canonicalPath: `/${activeLang}/account`,
+    robots: "noindex,nofollow",
+  });
 
   return (
     <Card>

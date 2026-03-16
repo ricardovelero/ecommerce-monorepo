@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
 import { useAddToCart } from "@/features/cart/hooks/useAddToCart";
 import { useHomeMerchandising } from "@/features/merchandising/hooks/useHomeMerchandising";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 import { formatPrice } from "@/lib/utils";
 
 export function HomePage() {
@@ -21,6 +22,13 @@ export function HomePage() {
   const addToCart = useAddToCart();
   const { notify } = useToast();
   const { data, isLoading, isError, refetch } = useHomeMerchandising();
+  const activeLang = lang ?? "es";
+
+  usePageSeo({
+    title: t("seo.home.title"),
+    description: t("seo.home.description"),
+    canonicalPath: `/${activeLang}`,
+  });
 
   async function onAddToCart(product: ProductDTO) {
     if (!authClient.isAuthenticated()) {

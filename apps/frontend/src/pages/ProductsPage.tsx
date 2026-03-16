@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAuthClient } from "@/features/auth/hooks/useAuthClient";
 import { useAddToCart } from "@/features/cart/hooks/useAddToCart";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 import { formatPrice } from "@/lib/utils";
 
 export function ProductsPage() {
@@ -21,6 +22,7 @@ export function ProductsPage() {
   const authClient = useAuthClient();
   const { notify } = useToast();
   const { lang } = useParams();
+  const activeLang = lang ?? "es";
   const locale = i18n.language === "en" ? "en-US" : "es-ES";
   const [searchDraft, setSearchDraft] = useState(searchParams.get("search") ?? "");
 
@@ -46,6 +48,12 @@ export function ProductsPage() {
   const categories = data?.categories ?? [];
   const currentPage = data?.page ?? query.page;
   const totalPages = data?.totalPages ?? 1;
+
+  usePageSeo({
+    title: t("seo.products.title"),
+    description: t("seo.products.description"),
+    canonicalPath: `/${activeLang}/products`,
+  });
 
   function updateSearchParams(updates: Record<string, string | null>, resetPage = false) {
     const next = new URLSearchParams(searchParams);
@@ -195,7 +203,7 @@ export function ProductsPage() {
                   {t("products.add")}
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to={`/${lang ?? "es"}/products/${product.id}`}>{t("products.view")}</Link>
+                  <Link to={`/${activeLang}/products/${product.id}`}>{t("products.view")}</Link>
                 </Button>
               </div>
             </CardContent>

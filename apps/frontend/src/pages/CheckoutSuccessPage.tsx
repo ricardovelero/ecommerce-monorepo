@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAuthStatus } from "@/features/auth/hooks/useAuthStatus";
 import { useCheckoutSessionStatus } from "@/features/orders/hooks/useCheckoutSessionStatus";
 import { useReconcileCheckoutSession } from "@/features/orders/hooks/useReconcileCheckoutSession";
+import { usePageSeo } from "@/features/seo/usePageSeo";
 
 export function CheckoutSuccessPage() {
   const [searchParams] = useSearchParams();
@@ -16,6 +17,7 @@ export function CheckoutSuccessPage() {
   const { lang } = useParams();
   const { t } = useTranslation();
   const prefix = `/${lang ?? "es"}`;
+  const activeLang = lang ?? "es";
   const queryClient = useQueryClient();
   const { notify } = useToast();
   const { isLoaded, isSignedIn } = useAuthStatus();
@@ -23,6 +25,13 @@ export function CheckoutSuccessPage() {
   const firstSeenAtRef = useRef<number | null>(null);
   const hasQueuedFallbackRef = useRef(false);
   const checkoutStatus = useCheckoutSessionStatus(sessionId, isLoaded && isSignedIn);
+
+  usePageSeo({
+    title: t("seo.checkoutSuccess.title"),
+    description: t("seo.checkoutSuccess.description"),
+    canonicalPath: `/${activeLang}/checkout/success`,
+    robots: "noindex,nofollow",
+  });
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !sessionId || !checkoutStatus.data) {

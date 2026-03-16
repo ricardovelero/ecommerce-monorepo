@@ -140,6 +140,46 @@
     "returnCart": "Volver al carrito",
     "continueShopping": "Seguir comprando"
   },
+  "seo": {
+    "home": {
+      "title": "Sol iO | Productos destacados, más vendidos y novedades",
+      "description": "Explora en Sol iO los productos destacados, los más vendidos y las últimas novedades en una storefront curada."
+    },
+    "products": {
+      "title": "Productos | Sol iO",
+      "description": "Recorre el catálogo de Sol iO con productos destacados, precios y filtros por categoría."
+    },
+    "product": {
+      "title": "{{name}} | Sol iO",
+      "fallbackTitle": "Detalle de producto | Sol iO",
+      "fallbackDescription": "Descubre detalles, precio y disponibilidad de productos del catálogo de Sol iO."
+    },
+    "cart": {
+      "title": "Carrito | Sol iO",
+      "description": "Revisa los productos de tu carrito y prepara el checkout."
+    },
+    "account": {
+      "title": "Cuenta | Sol iO",
+      "description": "Gestiona tu cuenta de Sol iO y accede a tu historial de pedidos."
+    },
+    "accountOrders": {
+      "title": "Historial de pedidos | Sol iO",
+      "description": "Revisa tus pedidos anteriores de Sol iO y su estado actual."
+    },
+    "accountOrderDetail": {
+      "title": "Pedido {{id}} | Sol iO",
+      "fallbackTitle": "Detalle de pedido | Sol iO",
+      "description": "Consulta datos de envío, fulfillment y artículos de tu pedido en Sol iO."
+    },
+    "checkoutSuccess": {
+      "title": "Checkout exitoso | Sol iO",
+      "description": "Tu checkout en Sol iO se completó correctamente."
+    },
+    "checkoutCancel": {
+      "title": "Checkout cancelado | Sol iO",
+      "description": "Tu checkout en Sol iO fue cancelado y tu carrito sigue disponible."
+    }
+  },
   "admin": {
     "nav": {
       "dashboard": "Panel",

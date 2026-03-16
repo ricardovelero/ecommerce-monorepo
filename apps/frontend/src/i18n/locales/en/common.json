@@ -140,6 +140,46 @@
     "returnCart": "Return to cart",
     "continueShopping": "Continue shopping"
   },
+  "seo": {
+    "home": {
+      "title": "Sol iO | Featured products, best sellers, and new arrivals",
+      "description": "Explore Sol iO featured products, current best sellers, and the latest arrivals in one curated storefront."
+    },
+    "products": {
+      "title": "Products | Sol iO",
+      "description": "Browse the Sol iO product catalog with featured items, pricing, and category filters."
+    },
+    "product": {
+      "title": "{{name}} | Sol iO",
+      "fallbackTitle": "Product details | Sol iO",
+      "fallbackDescription": "Discover product details, pricing, and availability from the Sol iO catalog."
+    },
+    "cart": {
+      "title": "Cart | Sol iO",
+      "description": "Review your cart items and prepare for checkout."
+    },
+    "account": {
+      "title": "Account | Sol iO",
+      "description": "Manage your Sol iO account and access order history."
+    },
+    "accountOrders": {
+      "title": "Order history | Sol iO",
+      "description": "Review previous Sol iO orders and their current status."
+    },
+    "accountOrderDetail": {
+      "title": "Order {{id}} | Sol iO",
+      "fallbackTitle": "Order detail | Sol iO",
+      "description": "Review shipping, fulfillment, and item details for your Sol iO order."
+    },
+    "checkoutSuccess": {
+      "title": "Checkout success | Sol iO",
+      "description": "Your Sol iO checkout completed successfully."
+    },
+    "checkoutCancel": {
+      "title": "Checkout cancelled | Sol iO",
+      "description": "Your Sol iO checkout was cancelled and your cart is still available."
+    }
+  },
   "admin": {
     "nav": {
       "dashboard": "Dashboard",
