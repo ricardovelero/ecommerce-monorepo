@@ -1,6 +1,8 @@
 import type { FulfillmentStatus, OrderStatus } from "@prisma/client";
 
 import { prisma } from "@/db/prisma";
+import { logger } from "@/lib/logger";
+import { sendOrderFulfillmentEmail } from "@/services/emailService";
 import { HttpError } from "@/utils/httpError";
 
 interface OrderItemDTO {
@@ -40,7 +42,7 @@ export interface OrderDTO {
   items: OrderItemDTO[];
 }
 
-function toOrderDTO(order: {
+type OrderRecord = {
   id: string;
   userId: string;
   status: OrderStatus;
@@ -73,7 +75,20 @@ function toOrderDTO(order: {
     priceCentsSnapshot: number;
     quantity: number;
   }>;
-}): OrderDTO {
+};
+
+type OrderRecordWithUser = OrderRecord & {
+  user: {
+    email: string | null;
+  };
+};
+
+type FulfillmentLogger = {
+  info: (payload: object, message: string) => void;
+  error: (payload: object, message: string) => void;
+};
+
+function toOrderDTO(order: OrderRecord): OrderDTO {
   return {
     id: order.id,
     userId: order.userId,
@@ -108,6 +123,24 @@ function toOrderDTO(order: {
       quantity: item.quantity,
     })),
   };
+}
+
+function normalizeNullableString(value: string | null | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized || null;
+}
+
+function normalizeEmail(value: string | null | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized || null;
 }
 
 export async function listOwnOrders(userId: string): Promise<OrderDTO[]> {
@@ -167,6 +200,120 @@ export async function getAdminOrderById(orderId: string): Promise<OrderDTO> {
   return toOrderDTO(order);
 }
 
+export function createAdminOrderFulfillmentService(deps: {
+  prismaClient: {
+    order: {
+      findUnique: (args: {
+        where: { id: string };
+        include: { items: true; user: { select: { email: true } } };
+      }) => Promise<OrderRecordWithUser | null>;
+      update: (args: {
+        where: { id: string };
+        data: {
+          fulfillmentStatus: FulfillmentStatus;
+          shippingCarrier: string | null;
+          trackingNumber: string | null;
+          trackingUrl: string | null;
+          fulfilledAt: Date | null;
+        };
+        include: { items: true };
+      }) => Promise<OrderRecord>;
+    };
+  };
+  sendOrderFulfillmentEmailFn: typeof sendOrderFulfillmentEmail;
+  loggerInstance: FulfillmentLogger;
+} = {
+  prismaClient: prisma,
+  sendOrderFulfillmentEmailFn: sendOrderFulfillmentEmail,
+  loggerInstance: logger,
+}) {
+  return {
+    async updateAdminOrderFulfillment(input: {
+      orderId: string;
+      fulfillmentStatus: FulfillmentStatus;
+      shippingCarrier?: string | null;
+      trackingNumber?: string | null;
+      trackingUrl?: string | null;
+      fulfilledAt?: Date | null;
+    }): Promise<OrderDTO> {
+      const existing = await deps.prismaClient.order.findUnique({
+        where: { id: input.orderId },
+        include: {
+          items: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!existing) {
+        throw new HttpError(404, "Order not found");
+      }
+
+      const nextShippingCarrier = normalizeNullableString(input.shippingCarrier);
+      const nextTrackingNumber = normalizeNullableString(input.trackingNumber);
+      const nextTrackingUrl = normalizeNullableString(input.trackingUrl);
+      const nextFulfilledAt =
+        input.fulfillmentStatus === "DELIVERED" ? input.fulfilledAt ?? existing.fulfilledAt ?? new Date() : null;
+      const shouldSendFulfillmentEmail =
+        existing.fulfillmentStatus !== input.fulfillmentStatus ||
+        normalizeNullableString(existing.trackingNumber) !== nextTrackingNumber ||
+        normalizeNullableString(existing.trackingUrl) !== nextTrackingUrl;
+
+      const order = await deps.prismaClient.order.update({
+        where: { id: input.orderId },
+        data: {
+          fulfillmentStatus: input.fulfillmentStatus,
+          shippingCarrier: nextShippingCarrier,
+          trackingNumber: nextTrackingNumber,
+          trackingUrl: nextTrackingUrl,
+          fulfilledAt: nextFulfilledAt,
+        },
+        include: { items: true },
+      });
+
+      if (!shouldSendFulfillmentEmail) {
+        deps.loggerInstance.info({ orderId: input.orderId }, "Skipping fulfillment email: no meaningful changes");
+        return toOrderDTO(order);
+      }
+
+      const customerEmail = normalizeEmail(existing.user.email);
+
+      if (!customerEmail) {
+        deps.loggerInstance.info({ orderId: input.orderId }, "Skipping fulfillment email: customer email missing");
+        return toOrderDTO(order);
+      }
+
+      try {
+        await deps.sendOrderFulfillmentEmailFn({
+          to: customerEmail,
+          orderId: order.id,
+          fulfillmentStatus: order.fulfillmentStatus,
+          trackingNumber: order.trackingNumber,
+          trackingUrl: order.trackingUrl,
+        });
+
+        deps.loggerInstance.info(
+          {
+            orderId: order.id,
+            userEmail: customerEmail,
+            fulfillmentStatus: order.fulfillmentStatus,
+          },
+          "Sent fulfillment email",
+        );
+      } catch (error) {
+        deps.loggerInstance.error({ orderId: order.id, error }, "Failed to send fulfillment email");
+      }
+
+      return toOrderDTO(order);
+    },
+  };
+}
+
+const adminOrderFulfillmentService = createAdminOrderFulfillmentService();
+
 export async function updateAdminOrderFulfillment(input: {
   orderId: string;
   fulfillmentStatus: FulfillmentStatus;
@@ -175,29 +322,5 @@ export async function updateAdminOrderFulfillment(input: {
   trackingUrl?: string | null;
   fulfilledAt?: Date | null;
 }): Promise<OrderDTO> {
-  const existing = await prisma.order.findUnique({
-    where: { id: input.orderId },
-    include: { items: true },
-  });
-
-  if (!existing) {
-    throw new HttpError(404, "Order not found");
-  }
-
-  const order = await prisma.order.update({
-    where: { id: input.orderId },
-    data: {
-      fulfillmentStatus: input.fulfillmentStatus,
-      shippingCarrier: input.shippingCarrier?.trim() ? input.shippingCarrier.trim() : null,
-      trackingNumber: input.trackingNumber?.trim() ? input.trackingNumber.trim() : null,
-      trackingUrl: input.trackingUrl?.trim() ? input.trackingUrl.trim() : null,
-      fulfilledAt:
-        input.fulfillmentStatus === "DELIVERED"
-          ? input.fulfilledAt ?? existing.fulfilledAt ?? new Date()
-          : null,
-    },
-    include: { items: true },
-  });
-
-  return toOrderDTO(order);
+  return adminOrderFulfillmentService.updateAdminOrderFulfillment(input);
 }

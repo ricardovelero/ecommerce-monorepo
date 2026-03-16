@@ -1,4 +1,4 @@
-import postmark from "postmark";
+import { ServerClient } from "postmark";
 
 import { env } from "@/config/env";
 import { logger } from "@/lib/logger";
@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger";
 const hasPostmarkConfig = Boolean(env.POSTMARK_SERVER_TOKEN && env.POSTMARK_FROM_EMAIL);
 
 const postmarkClient = hasPostmarkConfig
-  ? new postmark.ServerClient(env.POSTMARK_SERVER_TOKEN!)
+  ? new ServerClient(env.POSTMARK_SERVER_TOKEN!)
   : null;
 
 export async function sendOrderConfirmationEmail(input: {
