@@ -15,8 +15,36 @@
     "english": "Switch to English"
   },
   "home": {
-    "title": "E-commerce storefront",
-    "subtitle": "Feature-first frontend with checkout and admin capabilities."
+    "eyebrow": "Curated by Sol iO",
+    "title": "Discover the products we want customers to see first",
+    "subtitle": "Featured picks, top-performing essentials, and the newest arrivals, all pulled directly from your merchandising setup.",
+    "primaryCta": "Shop all products",
+    "secondaryCta": "See new arrivals",
+    "sectionCta": "Browse catalog",
+    "emptySection": "No products are available in this section yet.",
+    "readyToShip": "In stock",
+    "stats": {
+      "featured": "Featured",
+      "featuredDetail": "Homepage priority picks",
+      "bestSellers": "Best sellers",
+      "bestSellersDetail": "Top paid products",
+      "newArrivals": "New arrivals",
+      "newArrivalsDetail": "Latest catalog additions"
+    },
+    "sections": {
+      "featured": {
+        "title": "Featured products",
+        "description": "Manually prioritized products for the homepage spotlight."
+      },
+      "bestSellers": {
+        "title": "Best sellers",
+        "description": "Products currently leading paid order volume."
+      },
+      "newArrivals": {
+        "title": "New arrivals",
+        "description": "Recently added products ready to be discovered."
+      }
+    }
   },
   "products": {
     "title": "Products",
@@ -168,8 +196,13 @@
         "price": "Price",
         "stock": "Stock",
         "inventory": "Inventory",
+        "featured": "Featured",
+        "featuredRank": "Featured rank",
         "currency": "Currency",
         "actions": "Actions"
+      },
+      "featured": {
+        "active": "Featured"
       },
       "form": {
         "name": "Name",
@@ -179,6 +212,9 @@
         "stockHint": "Use 0 to mark the product as out of stock.",
         "currency": "Currency",
         "imageUrl": "Image URL (optional)",
+        "isFeatured": "Show this product in homepage featured products",
+        "featuredRank": "Featured rank",
+        "featuredRankHint": "Lower numbers appear first on the homepage.",
         "category": "Category",
         "selectCategory": "Select category"
       }
@@ -229,7 +265,8 @@
     },
     "validation": {
       "requiredFields": "Please complete all required fields",
-      "nameRequired": "Name is required"
+      "nameRequired": "Name is required",
+      "featuredRankPositive": "Featured products need a rank greater than 0"
     }
   },
   "fulfillment": {

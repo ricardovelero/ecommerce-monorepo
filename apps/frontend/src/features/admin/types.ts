@@ -15,6 +15,8 @@ export interface AdminProduct {
   stock: number;
   currency: string;
   imageUrl: string | null;
+  isFeatured: boolean;
+  featuredRank: number | null;
   categoryId: string;
   categoryName: string;
   createdAt: string;
@@ -30,5 +32,7 @@ export interface AdminProductInput {
   stock?: number;
   currency: string;
   imageUrl?: string | null;
+  isFeatured: boolean;
+  featuredRank?: number | null;
   categoryId: string;
 }

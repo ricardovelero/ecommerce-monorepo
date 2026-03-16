@@ -9,6 +9,8 @@ export interface AdminProductDTO {
   stock: number;
   currency: string;
   imageUrl: string | null;
+  isFeatured: boolean;
+  featuredRank: number | null;
   categoryId: string;
   categoryName: string;
   createdAt: Date;
@@ -25,6 +27,8 @@ function toAdminProductDTO(product: {
   stock: number;
   currency: string;
   imageUrl: string | null;
+  isFeatured: boolean;
+  featuredRank: number | null;
   categoryId: string;
   category: { name: string };
   createdAt: Date;
@@ -40,6 +44,8 @@ function toAdminProductDTO(product: {
     stock: product.stock,
     currency: product.currency,
     imageUrl: product.imageUrl,
+    isFeatured: product.isFeatured,
+    featuredRank: product.featuredRank,
     categoryId: product.categoryId,
     categoryName: product.category.name,
     createdAt: product.createdAt,
@@ -54,6 +60,14 @@ async function ensureCategoryExists(categoryId: string): Promise<void> {
   if (!category) {
     throw new HttpError(404, "Category not found");
   }
+}
+
+function normalizeFeaturedRank(isFeatured: boolean, featuredRank?: number | null): number | null {
+  if (!isFeatured) {
+    return null;
+  }
+
+  return typeof featuredRank === "number" && Number.isInteger(featuredRank) && featuredRank > 0 ? featuredRank : 1;
 }
 
 export async function listAdminProducts(): Promise<AdminProductDTO[]> {
@@ -72,6 +86,8 @@ export async function createAdminProduct(input: {
   stock?: number;
   currency: string;
   imageUrl?: string | null;
+  isFeatured?: boolean;
+  featuredRank?: number | null;
   categoryId: string;
   actorUserId: string;
 }): Promise<AdminProductDTO> {
@@ -85,6 +101,8 @@ export async function createAdminProduct(input: {
       stock: input.stock ?? 0,
       currency: input.currency,
       imageUrl: input.imageUrl,
+      isFeatured: input.isFeatured ?? false,
+      featuredRank: normalizeFeaturedRank(input.isFeatured ?? false, input.featuredRank),
       categoryId: input.categoryId,
       createdById: input.actorUserId,
       updatedById: input.actorUserId,
@@ -103,6 +121,8 @@ export async function updateAdminProduct(input: {
   stock?: number;
   currency: string;
   imageUrl?: string | null;
+  isFeatured?: boolean;
+  featuredRank?: number | null;
   categoryId: string;
   actorUserId: string;
 }): Promise<AdminProductDTO> {
@@ -122,6 +142,8 @@ export async function updateAdminProduct(input: {
       stock: input.stock,
       currency: input.currency,
       imageUrl: input.imageUrl,
+      isFeatured: input.isFeatured ?? false,
+      featuredRank: normalizeFeaturedRank(input.isFeatured ?? false, input.featuredRank),
       categoryId: input.categoryId,
       updatedById: input.actorUserId,
     },

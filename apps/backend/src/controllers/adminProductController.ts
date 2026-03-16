@@ -20,6 +20,8 @@ export async function postAdminProduct(req: Request, res: Response): Promise<voi
     stock: req.body.stock,
     currency: req.body.currency,
     imageUrl: req.body.imageUrl,
+    isFeatured: req.body.isFeatured,
+    featuredRank: req.body.featuredRank,
     categoryId: req.body.categoryId,
     actorUserId: req.user!.id,
   });
@@ -36,6 +38,8 @@ export async function putAdminProduct(req: Request, res: Response): Promise<void
     stock: req.body.stock,
     currency: req.body.currency,
     imageUrl: req.body.imageUrl,
+    isFeatured: req.body.isFeatured,
+    featuredRank: req.body.featuredRank,
     categoryId: req.body.categoryId,
     actorUserId: req.user!.id,
   });

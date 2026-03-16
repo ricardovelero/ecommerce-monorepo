@@ -35,6 +35,8 @@ const EMPTY_FORM: AdminProductInput = {
   stock: 0,
   currency: "EUR",
   imageUrl: "",
+  isFeatured: false,
+  featuredRank: null,
   categoryId: "",
 };
 
@@ -89,6 +91,8 @@ export function AdminProductsPage() {
       stock: product.stock,
       currency: product.currency,
       imageUrl: product.imageUrl ?? "",
+      isFeatured: product.isFeatured,
+      featuredRank: product.featuredRank,
       categoryId: product.categoryId,
     });
     setDialogOpen(true);
@@ -106,6 +110,11 @@ export function AdminProductsPage() {
       return;
     }
 
+    if (form.isFeatured && (form.featuredRank ?? 0) < 1) {
+      setError(t("admin.validation.featuredRankPositive"));
+      return;
+    }
+
     const payload: AdminProductInput = {
       ...form,
       name: form.name.trim(),
@@ -113,6 +122,7 @@ export function AdminProductsPage() {
       stock: form.stock ?? 0,
       currency: form.currency.trim().toUpperCase(),
       imageUrl: form.imageUrl?.trim() ? form.imageUrl.trim() : null,
+      featuredRank: form.isFeatured ? form.featuredRank ?? 1 : null,
     };
 
     if (editingId) {
@@ -185,6 +195,8 @@ export function AdminProductsPage() {
               <TableHead>{t("admin.products.columns.price")}</TableHead>
               <TableHead>{t("admin.products.columns.stock")}</TableHead>
               <TableHead>{t("admin.products.columns.inventory")}</TableHead>
+              <TableHead>{t("admin.products.columns.featured")}</TableHead>
+              <TableHead>{t("admin.products.columns.featuredRank")}</TableHead>
               <TableHead>{t("admin.products.columns.currency")}</TableHead>
               <TableHead className="text-right">{t("admin.products.columns.actions")}</TableHead>
             </TableRow>
@@ -199,6 +211,10 @@ export function AdminProductsPage() {
                 <TableCell>
                   <InventoryBadge stock={product.stock} t={t} />
                 </TableCell>
+                <TableCell>
+                  {product.isFeatured ? <Badge variant="accent">{t("admin.products.featured.active")}</Badge> : "-"}
+                </TableCell>
+                <TableCell>{product.isFeatured ? product.featuredRank ?? "-" : "-"}</TableCell>
                 <TableCell>{product.currency}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -297,6 +313,41 @@ export function AdminProductsPage() {
                 value={form.imageUrl ?? ""}
                 onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
               />
+            </div>
+            <div className="space-y-2 rounded-md border p-3">
+              <label className="flex items-center gap-3 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={form.isFeatured}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      isFeatured: event.target.checked,
+                      featuredRank: event.target.checked ? prev.featuredRank ?? 1 : null,
+                    }))
+                  }
+                />
+                {t("admin.products.form.isFeatured")}
+              </label>
+              <div className="space-y-1">
+                <label htmlFor="product-featured-rank" className="text-sm font-medium">
+                  {t("admin.products.form.featuredRank")}
+                </label>
+                <Input
+                  id="product-featured-rank"
+                  type="number"
+                  min={1}
+                  disabled={!form.isFeatured}
+                  value={form.featuredRank ?? ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      featuredRank: event.target.value ? Number(event.target.value) : null,
+                    }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">{t("admin.products.form.featuredRankHint")}</p>
+              </div>
             </div>
 
             <div className="space-y-1">

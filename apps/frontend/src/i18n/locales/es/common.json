@@ -15,8 +15,36 @@
     "english": "Cambiar a inglés"
   },
   "home": {
-    "title": "Storefront de e-commerce",
-    "subtitle": "Frontend por features con checkout y panel admin."
+    "eyebrow": "Curado por Sol iO",
+    "title": "Descubre los productos que queremos mostrar primero",
+    "subtitle": "Destacados, productos más vendidos y últimas incorporaciones, todo alimentado directamente por tu configuración de merchandising.",
+    "primaryCta": "Ver todo el catálogo",
+    "secondaryCta": "Ver novedades",
+    "sectionCta": "Explorar catálogo",
+    "emptySection": "Todavía no hay productos disponibles en esta sección.",
+    "readyToShip": "En stock",
+    "stats": {
+      "featured": "Destacados",
+      "featuredDetail": "Selección principal de la home",
+      "bestSellers": "Más vendidos",
+      "bestSellersDetail": "Top de productos pagados",
+      "newArrivals": "Novedades",
+      "newArrivalsDetail": "Últimas altas del catálogo"
+    },
+    "sections": {
+      "featured": {
+        "title": "Productos destacados",
+        "description": "Productos priorizados manualmente para el escaparate principal."
+      },
+      "bestSellers": {
+        "title": "Más vendidos",
+        "description": "Productos que lideran actualmente el volumen de pedidos pagados."
+      },
+      "newArrivals": {
+        "title": "Novedades",
+        "description": "Productos recién añadidos listos para descubrir."
+      }
+    }
   },
   "products": {
     "title": "Productos",
@@ -168,8 +196,13 @@
         "price": "Precio",
         "stock": "Stock",
         "inventory": "Inventario",
+        "featured": "Destacado",
+        "featuredRank": "Orden destacado",
         "currency": "Moneda",
         "actions": "Acciones"
+      },
+      "featured": {
+        "active": "Destacado"
       },
       "form": {
         "name": "Nombre",
@@ -179,6 +212,9 @@
         "stockHint": "Usa 0 para marcar el producto sin stock.",
         "currency": "Moneda",
         "imageUrl": "URL de imagen (opcional)",
+        "isFeatured": "Mostrar este producto en destacados de la home",
+        "featuredRank": "Orden destacado",
+        "featuredRankHint": "Los números más bajos aparecen primero en la home.",
         "category": "Categoría",
         "selectCategory": "Selecciona categoría"
       }
@@ -229,7 +265,8 @@
     },
     "validation": {
       "requiredFields": "Completa todos los campos requeridos",
-      "nameRequired": "El nombre es obligatorio"
+      "nameRequired": "El nombre es obligatorio",
+      "featuredRankPositive": "Los productos destacados necesitan un orden mayor que 0"
     }
   },
   "fulfillment": {
