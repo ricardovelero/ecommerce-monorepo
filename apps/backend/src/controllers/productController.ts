@@ -2,6 +2,7 @@ import type { ProductListQueryDTO, ProductSort } from "@ecommerce/shared-types";
 import type { Request, Response } from "express";
 
 import { getProductById, listProducts } from "@/services/productService";
+import { upsertOwnProductReview } from "@/services/reviewService";
 
 function parsePositiveInt(value: unknown, fallback: number): number {
   const parsed = Number(value);
@@ -30,6 +31,11 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
 }
 
 export async function getProduct(req: Request, res: Response): Promise<void> {
-  const product = await getProductById(req.params.id);
+  const product = await getProductById(req.params.id, req.user?.id);
   res.json(product);
+}
+
+export async function upsertOwnProductReviewController(req: Request, res: Response): Promise<void> {
+  const reviewBlock = await upsertOwnProductReview(req.user!.id, req.params.id, req.body);
+  res.json(reviewBlock);
 }
