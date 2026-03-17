@@ -1,6 +1,6 @@
 # TODO
 
-Updated on 2026-03-16.
+Updated on 2026-03-17.
 
 ## Recently completed: order fulfillment emails
 
@@ -50,21 +50,39 @@ Send an email to the customer when an admin updates the order fulfillment status
   - admin featured-rank normalization behavior
   - featured-rank validation rules
 
-## Next priority: SEO
+## Recently completed: SEO
 
-- Add per-page title and meta description
-- Add product/category SEO fields
-- Add canonical URLs, sitemap, and robots.txt
-- Review structured data for product pages
+### Completed
 
-## Later roadmap
+- Public storefront pages now set route-specific SEO metadata for:
+  - homepage
+  - products listing
+  - product detail
+- Added:
+  - canonical URLs
+  - `robots.txt`
+  - `sitemap.xml`
+  - Open Graph tags for public pages
+- Utility/authenticated pages remain `noindex,nofollow`
+- Stage 1 implemented:
+  - server-injected SEO metadata for non-JS crawlers
+- Stage 2 implemented:
+  - server-rendered HTML body for public storefront routes
+  - React Query dehydration/hydration for SSR data reuse
+- Public SSR coverage added for:
+  - `/:lang`
+  - `/:lang/products`
+  - `/:lang/products/:id`
+- Validation completed with curl against live HTML responses for home, listing, and product routes
 
-### Reviews
+## Next priority: Reviews
 
 - Design review data model and moderation rules
 - Add customer review submission flow
 - Show rating summary and reviews on product pages
 - Decide whether only verified buyers can review
+
+## Later roadmap
 
 ### Wishlist
 
