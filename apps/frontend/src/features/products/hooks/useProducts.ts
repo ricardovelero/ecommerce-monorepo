@@ -1,12 +1,12 @@
 import type { ProductListQueryDTO, ProductListResponseDTO } from "@ecommerce/shared-types";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 
+import type { ApiGetClient } from "@/features/shared/api/ApiClient";
 import { useHttpClient } from "@/features/shared/api/useHttpClient";
 
 export const productsQueryKey = ["products"] as const;
 
-export function useProducts(query: ProductListQueryDTO) {
-  const http = useHttpClient();
+export function buildProductsQueryString(query: ProductListQueryDTO) {
   const searchParams = new URLSearchParams();
 
   if (query.search) {
@@ -25,10 +25,20 @@ export function useProducts(query: ProductListQueryDTO) {
     searchParams.set("pageSize", String(query.pageSize));
   }
 
-  const queryString = searchParams.toString();
+  return searchParams.toString();
+}
 
-  return useQuery({
+export function getProductsQueryOptions(http: ApiGetClient, query: ProductListQueryDTO) {
+  const queryString = buildProductsQueryString(query);
+
+  return queryOptions({
     queryKey: [...productsQueryKey, query] as const,
     queryFn: () => http.get<ProductListResponseDTO>(`/api/products${queryString ? `?${queryString}` : ""}`),
   });
+}
+
+export function useProducts(query: ProductListQueryDTO) {
+  const http = useHttpClient();
+
+  return useQuery(getProductsQueryOptions(http, query));
 }

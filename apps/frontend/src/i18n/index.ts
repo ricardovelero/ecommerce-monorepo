@@ -1,24 +1,44 @@
-import i18n from "i18next";
+import i18n, { createInstance } from "i18next";
 import { initReactI18next } from "react-i18next";
 
 import enCommon from "@/i18n/locales/en/common.json";
 import esCommon from "@/i18n/locales/es/common.json";
 
-const storageKey = "ecommerce-lang";
-const storedLanguage = typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null;
-const initialLanguage = storedLanguage === "en" ? "en" : "es";
+export const languageStorageKey = "ecommerce-lang";
+export type AppLanguage = "es" | "en";
 
-void i18n.use(initReactI18next).init({
-  resources: {
-    es: { translation: esCommon },
-    en: { translation: enCommon },
-  },
-  lng: initialLanguage,
-  fallbackLng: "es",
-  interpolation: {
-    escapeValue: false,
-  },
-});
+const resources = {
+  es: { translation: esCommon },
+  en: { translation: enCommon },
+} as const;
 
-export { storageKey as languageStorageKey };
-export default i18n;
+export function resolveLanguage(value: string | null | undefined): AppLanguage {
+  return value === "en" ? "en" : "es";
+}
+
+function getInitialLanguage(): AppLanguage {
+  if (typeof window === "undefined") {
+    return "es";
+  }
+
+  return resolveLanguage(window.localStorage.getItem(languageStorageKey));
+}
+
+export function createAppI18n(initialLanguage: AppLanguage) {
+  const instance = createInstance();
+  void instance.use(initReactI18next).init({
+    resources,
+    lng: initialLanguage,
+    fallbackLng: "es",
+    initImmediate: false,
+    interpolation: {
+      escapeValue: false,
+    },
+  });
+
+  return instance;
+}
+
+const appI18n = createAppI18n(getInitialLanguage());
+
+export default appI18n;

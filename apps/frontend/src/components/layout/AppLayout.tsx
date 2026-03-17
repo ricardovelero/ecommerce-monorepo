@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import { AppHeader } from "@/components/layout/AppHeader";
-import i18n, { languageStorageKey } from "@/i18n";
+import { languageStorageKey } from "@/i18n";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { lang } = useParams();
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     const target = lang === "en" ? "en" : "es";
