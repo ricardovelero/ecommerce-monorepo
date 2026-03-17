@@ -127,7 +127,40 @@
       "fulfilledAt": "Entregado el",
       "item": "Artículo",
       "quantity": "Cantidad",
-      "unitPrice": "Precio unitario"
+      "unitPrice": "Precio unitario",
+      "reviewProduct": "Valorar producto"
+    }
+  },
+  "reviews": {
+    "title": "Valoraciones",
+    "formTitle": "Deja una valoración",
+    "editTitle": "Actualiza tu valoración",
+    "verifiedOnly": "Solo los compradores verificados pueden dejar valoraciones.",
+    "verifiedBadge": "Comprador verificado",
+    "signInPrompt": "Inicia sesión para valorar productos que ya hayas recibido.",
+    "signInCta": "Iniciar sesión para valorar",
+    "submitAction": "Enviar valoración",
+    "updateAction": "Actualizar valoración",
+    "saveSuccess": "Valoración guardada.",
+    "saveError": "No se pudo guardar la valoración.",
+    "empty": "Todavía no hay valoraciones para este producto.",
+    "ratingValue": "{{rating}}/5",
+    "summary": {
+      "none": "Aún no hay valoraciones",
+      "value": "{{average}} de media · {{count}} valoraciones"
+    },
+    "fields": {
+      "rating": "Puntuación",
+      "comment": "Comentario",
+      "commentPlaceholder": "Cuéntanos tu experiencia con este producto."
+    },
+    "validation": {
+      "rating": "La puntuación debe ser un número entero entre 1 y 5.",
+      "comment": "El comentario es obligatorio y debe tener como máximo 1000 caracteres."
+    },
+    "ineligible": {
+      "notPurchased": "Solo los compradores verificados pueden valorar este producto.",
+      "notDelivered": "Podrás valorar este producto cuando tu pedido se entregue."
     }
   },
   "checkout": {

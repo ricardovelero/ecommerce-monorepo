@@ -100,6 +100,7 @@ export function AccountOrderDetailPage() {
                   <TableHead>{t("account.detail.quantity")}</TableHead>
                   <TableHead>{t("account.detail.unitPrice")}</TableHead>
                   <TableHead>{t("account.columns.total")}</TableHead>
+                  <TableHead>{t("account.columns.action")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -110,6 +111,15 @@ export function AccountOrderDetailPage() {
                     <TableCell>{formatPrice(item.priceCentsSnapshot, order.currency, locale)}</TableCell>
                     <TableCell>
                       {formatPrice(item.priceCentsSnapshot * item.quantity, order.currency, locale)}
+                    </TableCell>
+                    <TableCell>
+                      {order.fulfillmentStatus === "DELIVERED" ? (
+                        <Button asChild size="sm" variant="outline">
+                          <Link to={`${prefix}/products/${item.productId}#reviews`}>{t("account.detail.reviewProduct")}</Link>
+                        </Button>
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

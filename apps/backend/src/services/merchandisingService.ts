@@ -33,6 +33,10 @@ function toProductDTO(product: ProductRecord): ProductDTO {
     imageUrl: product.imageUrl,
     categoryId: product.categoryId,
     categoryName: product.category.name,
+    reviewSummary: {
+      averageRating: null,
+      reviewCount: 0,
+    },
   };
 }
 

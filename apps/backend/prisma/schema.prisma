@@ -41,6 +41,7 @@ model User {
   createdAt         DateTime   @default(now())
   carts             Cart[]
   orders            Order[]    @relation("OrderUser")
+  reviews           Review[]
   createdProducts   Product[]  @relation("ProductCreatedBy")
   updatedProducts   Product[]  @relation("ProductUpdatedBy")
   createdCategories Category[] @relation("CategoryCreatedBy")
@@ -62,25 +63,26 @@ model Category {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String
-  priceCents  Int
-  stock       Int      @default(0)
-  currency    String   @default("EUR")
-  imageUrl    String?
-  isFeatured  Boolean  @default(false)
+  id           String     @id @default(cuid())
+  name         String     @unique
+  description  String
+  priceCents   Int
+  stock        Int        @default(0)
+  currency     String     @default("EUR")
+  imageUrl     String?
+  isFeatured   Boolean    @default(false)
   featuredRank Int?
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdById String?
-  updatedById String?
-  createdBy   User?    @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy   User?    @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  categoryId   String
+  category     Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  createdById  String?
+  updatedById  String?
+  createdBy    User?      @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?      @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  reviews      Review[]
 
   @@index([isFeatured, featuredRank])
 }
@@ -139,6 +141,7 @@ model Order {
   createdBy               User?       @relation("OrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy               User?       @relation("OrderUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   items                   OrderItem[]
+  verifiedReviews         Review[]    @relation("VerifiedReviewOrder")
 }
 
 model OrderItem {
@@ -158,4 +161,23 @@ model WebhookEvent {
   eventId   String   @unique
   eventType String
   receivedAt DateTime @default(now())
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  productId       String
+  userId          String
+  verifiedOrderId String
+  rating          Int
+  comment         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedOrder   Order    @relation("VerifiedReviewOrder", fields: [verifiedOrderId], references: [id], onDelete: Restrict)
+
+  @@unique([productId, userId])
+  @@index([productId, updatedAt])
+  @@index([userId])
+  @@index([verifiedOrderId])
 }

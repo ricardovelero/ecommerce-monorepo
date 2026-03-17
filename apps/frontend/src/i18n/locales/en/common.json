@@ -127,7 +127,40 @@
       "fulfilledAt": "Delivered at",
       "item": "Item",
       "quantity": "Quantity",
-      "unitPrice": "Unit price"
+      "unitPrice": "Unit price",
+      "reviewProduct": "Review product"
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "formTitle": "Leave a review",
+    "editTitle": "Update your review",
+    "verifiedOnly": "Only verified buyers can leave reviews.",
+    "verifiedBadge": "Verified buyer",
+    "signInPrompt": "Sign in to review products you have already received.",
+    "signInCta": "Sign in to review",
+    "submitAction": "Submit review",
+    "updateAction": "Update review",
+    "saveSuccess": "Review saved.",
+    "saveError": "Could not save the review.",
+    "empty": "There are no reviews for this product yet.",
+    "ratingValue": "{{rating}}/5",
+    "summary": {
+      "none": "No reviews yet",
+      "value": "{{average}} average · {{count}} reviews"
+    },
+    "fields": {
+      "rating": "Rating",
+      "comment": "Comment",
+      "commentPlaceholder": "Share your experience with this product."
+    },
+    "validation": {
+      "rating": "Rating must be a whole number between 1 and 5.",
+      "comment": "Comment is required and must be 1000 characters or fewer."
+    },
+    "ineligible": {
+      "notPurchased": "Only verified buyers can review this product.",
+      "notDelivered": "You can review this product after your order is delivered."
     }
   },
   "checkout": {

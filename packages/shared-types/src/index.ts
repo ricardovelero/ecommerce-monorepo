@@ -10,6 +10,40 @@ export interface ProductDTO {
   imageUrl?: string | null;
   categoryId: string;
   categoryName: string;
+  reviewSummary?: ProductReviewSummaryDTO;
+}
+
+export interface ProductReviewDTO {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+  isVerifiedBuyer: boolean;
+}
+
+export interface ProductReviewSummaryDTO {
+  averageRating: number | null;
+  reviewCount: number;
+}
+
+export type ReviewEligibilityReason = "NOT_PURCHASED" | "NOT_DELIVERED" | null;
+
+export interface ViewerReviewStateDTO {
+  canReview: boolean;
+  reason: ReviewEligibilityReason;
+  existingReview: ProductReviewDTO | null;
+}
+
+export interface ProductDetailDTO extends ProductDTO {
+  reviewSummary: ProductReviewSummaryDTO;
+  reviews: ProductReviewDTO[];
+  viewerReviewState?: ViewerReviewStateDTO;
+}
+
+export interface UpsertProductReviewDTO {
+  rating: number;
+  comment: string;
 }
 
 export type ProductSort = "newest" | "price_asc" | "price_desc" | "name_asc";

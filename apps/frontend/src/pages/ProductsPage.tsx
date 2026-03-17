@@ -192,6 +192,14 @@ export function ProductsPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Badge>{product.categoryName}</Badge>
+              <p className="text-sm text-muted-foreground">
+                {product.reviewSummary?.reviewCount
+                  ? t("reviews.summary.value", {
+                      average: product.reviewSummary.averageRating?.toFixed(1) ?? "0.0",
+                      count: product.reviewSummary.reviewCount,
+                    })
+                  : t("reviews.summary.none")}
+              </p>
               <p className="line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
               <p className="font-medium">{formatPrice(product.priceCents, product.currency, locale)}</p>
               <div className="flex gap-2">

@@ -66,7 +66,7 @@ async function prefetchRouteData(queryClient: QueryClient, apiClient: ApiGetClie
   }
 
   try {
-    await queryClient.fetchQuery(getProductQueryOptions(apiClient, maybeProductId));
+    await queryClient.fetchQuery(getProductQueryOptions(apiClient, maybeProductId, "guest"));
     return { lang, statusCode: 200 };
   } catch (error) {
     const statusCode = typeof error === "object" && error !== null && "status" in error && error.status === 404 ? 404 : 500;
