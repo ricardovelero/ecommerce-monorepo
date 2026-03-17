@@ -1,14 +1,15 @@
 import { useAuth, useClerk, useUser } from "@clerk/clerk-react";
 import { useMemo } from "react";
 
+import { AuthClientProvider } from "@/features/auth/hooks/useAuthClient";
 import { ClerkAuthClient } from "@/features/auth/infrastructure/clerk/ClerkAuthClient";
 
-export function useAuthClient() {
+export function ClerkAuthClientProvider({ children }: { children: React.ReactNode }) {
   const { isSignedIn, getToken } = useAuth();
   const { user } = useUser();
   const clerk = useClerk();
 
-  return useMemo(
+  const authClient = useMemo(
     () =>
       new ClerkAuthClient({
         isSignedIn: Boolean(isSignedIn),
@@ -24,4 +25,6 @@ export function useAuthClient() {
       }),
     [clerk, getToken, isSignedIn, user],
   );
+
+  return <AuthClientProvider authClient={authClient}>{children}</AuthClientProvider>;
 }
