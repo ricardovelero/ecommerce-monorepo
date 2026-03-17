@@ -2,6 +2,39 @@
 
 Updated on 2026-03-17.
 
+## Recently completed: Reviews
+
+### Completed
+
+- Review data model added with:
+  - `Review` linked to `User`, `Product`, and qualifying `Order`
+  - one review per user/product
+  - persisted verified order reference for auditability
+- Verified-buyer review rule implemented:
+  - only users with a `PAID` order for the product whose fulfillment is `DELIVERED` can review
+  - review submissions update the existing review instead of creating duplicates
+- Public product detail now includes:
+  - review summary with average rating and total reviews
+  - review list ordered by most recently updated
+  - viewer-specific eligibility state for signed-in users
+- Customer review submission flow added:
+  - authenticated `PUT /api/products/:id/reviews/me`
+  - rating and comment validation
+  - immediate publishing with no moderation step in v1
+- Storefront UI updated:
+  - product detail review form for eligible buyers
+  - `Verified buyer` badge on displayed reviews
+  - average rating shown on product cards in the products listing
+  - review deep links from delivered items in account order detail
+- Shared types and translations added for review DTOs and review UI copy
+- Tests added for:
+  - verified-buyer eligibility
+  - delivered-only gating
+  - review upsert behavior
+  - product detail viewer review state
+  - anonymous review submission rejection
+  - review payload validation
+
 ## Recently completed: order fulfillment emails
 
 ### Goal
@@ -74,13 +107,6 @@ Send an email to the customer when an admin updates the order fulfillment status
   - `/:lang/products`
   - `/:lang/products/:id`
 - Validation completed with curl against live HTML responses for home, listing, and product routes
-
-## Next priority: Reviews
-
-- Design review data model and moderation rules
-- Add customer review submission flow
-- Show rating summary and reviews on product pages
-- Decide whether only verified buyers can review
 
 ## Later roadmap
 
